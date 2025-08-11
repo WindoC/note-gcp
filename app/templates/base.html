@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title or "Markdown Notes" }}{% endblock %}</title>
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>📝 Markdown Notes</h1>
+            </div>
+            <div class="nav-links">
+                <a href="/notes">List Notes</a>
+                <a href="/notes/new">Create Note</a>
+                <form method="post" action="/logout" style="display: inline;">
+                    <button type="submit" class="nav-link-btn">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="container">
+        {% if message %}
+        <div class="message">
+            {{ message }}
+        </div>
+        {% endif %}
+        
+        {% block content %}
+        <div class="welcome">
+            <h2>Welcome to your personal markdown notes!</h2>
+            <p>This is a secure, single-user application for managing your markdown notes.</p>
+        </div>
+        {% endblock %}
+    </main>
+    
+    <script src="/static/js/editor.js"></script>
+</body>
+</html>

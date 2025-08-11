@@ -1,0 +1,14 @@
+runtime: python313
+service: default
+env: flex
+
+automatic_scaling:
+  min_num_instances: 0
+  max_num_instances: 2
+
+env_variables:
+  USERNAME: "admin"
+  PASSWORD_HASH: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"  # MD5 of "password"
+  FIRESTORE_PROJECT: "your-project-id"
+  SECRET_KEY: "your-secret-key-here-generate-a-random-string"
+  ENVIRONMENT: "production"

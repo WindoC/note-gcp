@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Markdown Notes{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2 style="text-align: center; margin-bottom: 2rem; color: #495057;">Login</h2>
+    
+    {% if error %}
+    <div class="message error">
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="post" action="/login">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="btn" style="width: 100%;">Login</button>
+        </div>
+    </form>
+    
+    <div style="text-align: center; margin-top: 2rem; color: #6c757d; font-size: 0.9rem;">
+        <p>This is a single-user application.</p>
+        <p>Use the configured username and password to access your notes.</p>
+    </div>
+</div>
+{% endblock %}
