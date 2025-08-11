@@ -5,7 +5,13 @@
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
     <h2>{{ title }}</h2>
-    <div>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button type="submit" class="btn" form="note-form">
+            {% if is_editing %}Update Note{% else %}Create Note{% endif %}
+        </button>
+        {% if is_editing and note and note.id %}
+        <button type="button" onclick="deleteNote('{{ note.id }}')" class="btn btn-danger">Delete Note</button>
+        {% endif %}
         {% if is_editing and note and note.id %}
         <a href="/notes/{{ note.id }}/preview" class="btn btn-secondary" target="_blank">Preview</a>
         {% endif %}
@@ -25,7 +31,7 @@
 </div>
 {% endif %}
 
-<form method="post" action="{% if is_editing and note and note.id %}/notes/{{ note.id }}{% else %}/notes{% endif %}">
+<form id="note-form" method="post" action="{% if is_editing and note and note.id %}/notes/{{ note.id }}{% else %}/notes{% endif %}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     
     <div class="form-group">
@@ -49,16 +55,6 @@
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-        <button type="submit" class="btn">
-            {% if is_editing %}Update Note{% else %}Create Note{% endif %}
-        </button>
-        <a href="/notes" class="btn btn-secondary">Cancel</a>
-        {% if is_editing and note and note.id %}
-        <button type="button" onclick="deleteNote('{{ note.id }}')" class="btn btn-danger" style="margin-left: auto;">Delete Note</button>
-        {% endif %}
     </div>
 </form>
 
