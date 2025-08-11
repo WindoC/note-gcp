@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     username: str = os.getenv("USERNAME", "admin")
     password_hash: str = os.getenv("PASSWORD_HASH", "")
     firestore_project: str = os.getenv("FIRESTORE_PROJECT", "")
+    firestore_emulator_host: Optional[str] = os.getenv("FIRESTORE_EMULATOR_HOST", None)
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-here")
     environment: str = os.getenv("ENVIRONMENT", "development")
     
