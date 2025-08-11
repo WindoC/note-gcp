@@ -23,13 +23,13 @@ python3 --version
 ### 1.2 Create and Activate Virtual Environment (Recommended)
 ```bash
 # Create virtual environment
-python -m venv venv
+python -m venv .venv
 
 # Activate virtual environment
 # Windows:
-venv\Scripts\activate
+.venv\Scripts\activate
 # macOS/Linux:
-source venv/bin/activate
+source .venv/bin/activate
 
 # Verify activation (should show (venv) in prompt)
 which python  # macOS/Linux
