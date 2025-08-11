@@ -1,0 +1,15 @@
+.*
+!.gitignore
+!.env.example
+!.dockerignore
+
+# python
+__pycache__/
+*.py[cod]
+
+# test files
+*.log
+
+# firebase
+firebase.*
+firestore.*
