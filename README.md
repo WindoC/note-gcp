@@ -369,20 +369,6 @@ Common issues and solutions:
 - Verify environment variables are set correctly
 - Test locally before deploying
 
-## 🎯 Roadmap
-
-Future enhancements that could be added:
-- [ ] Note categories/tags
-- [ ] File attachments
-- [ ] Export/import functionality  
-- [ ] Collaborative editing
-- [ ] API rate limiting
-- [ ] Advanced search filters
-- [ ] Note templates
-- [ ] Dark mode theme
-- [ ] Offline support
-- [ ] Mobile app
-
 ---
 
 **Built with ❤️ using FastAPI and Google Cloud Platform**
