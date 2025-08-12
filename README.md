@@ -10,12 +10,13 @@ A secure, single-user web application for managing personal markdown notes, buil
 ## ✨ Features
 
 - 🔐 **Secure Authentication** - Session-based auth with MD5 password hashing
-- 📝 **Markdown Editor** - Split-pane editor with real-time preview
+- 🔒 **End-to-End Encryption** - AES-GCM encryption protects note content during transmission
+- 📝 **Markdown Editor** - Rich editor with syntax highlighting and auto-save
 - 🔍 **Search Functionality** - Full-text search across note titles and content
 - 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
 - ☁️ **Cloud Storage** - Notes persisted in Google Firestore
 - 🚀 **Auto-Deploy** - Ready for Google Cloud Platform App Engine
-- 🔒 **Security Features** - CSRF protection, secure cookies, HTTPS enforcement
+- 🛡️ **Security Features** - CSRF protection, secure cookies, HTTPS enforcement
 
 ## 🏗️ Architecture
 
@@ -25,9 +26,13 @@ A secure, single-user web application for managing personal markdown notes, buil
 │                 │    │                  │    │   Database      │
 │ • Authentication│    │ • Session Mgmt   │    │ • Note Storage  │
 │ • Markdown UI   │    │ • CRUD APIs      │    │ • Search Index  │
-│ • Real-time     │    │ • Security       │    │ • Backup        │
-│   Preview       │    │ • Validation     │    │                 │
+│ • AES-GCM       │    │ • AES-GCM        │    │ • Backup        │
+│   Encryption    │    │   Decryption     │    │                 │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
+         ▲                       ▲
+         │    🔒 Encrypted       │
+         │     Transmission      │
+         └───────────────────────┘
 ```
 
 ## 🚀 Quick Start
@@ -99,6 +104,7 @@ Follow the detailed guide in [`DEPLOYMENT.md`](DEPLOYMENT.md) for production dep
 |----------|-------------|
 | [`PRD.md`](PRD.md) | Product Requirements Document |
 | [`PLAN.md`](PLAN.md) | Implementation Plan & Architecture |
+| [`e2e_encryption_prd.md`](e2e_encryption_prd.md) | End-to-End Encryption Requirements |
 | [`DEPLOYMENT.md`](DEPLOYMENT.md) | GCP App Engine & Firestore Setup Guide |
 | [`TEST.md`](TEST.md) | Local Testing Guide |
 | [`CLAUDE.md`](CLAUDE.md) | Development Guidelines for AI Assistance |
@@ -126,6 +132,7 @@ Fully responsive design that works perfectly on all devices.
 - **Pydantic** - Data validation and settings management
 - **PyJWT** - JSON Web Token implementation
 - **Python-Markdown** - Markdown to HTML conversion
+- **Cryptography** - AES-GCM encryption library
 
 ### Database
 - **Google Firestore** - NoSQL cloud database
@@ -134,8 +141,9 @@ Fully responsive design that works perfectly on all devices.
 ### Frontend
 - **Jinja2** - Modern templating engine
 - **Vanilla JavaScript** - No heavy frameworks, just clean JS
+- **Web Crypto API** - Browser-native AES-GCM encryption
 - **CSS Grid/Flexbox** - Modern responsive layouts
-- **Progressive Enhancement** - Works without JavaScript
+- **Progressive Enhancement** - Core features work without JavaScript
 
 ### Deployment
 - **Google Cloud App Engine** - Fully managed serverless platform
@@ -145,6 +153,7 @@ Fully responsive design that works perfectly on all devices.
 ## 🔒 Security Features
 
 - ✅ **Authentication** - Session-based with secure JWT tokens
+- ✅ **End-to-End Encryption** - AES-GCM 256-bit encryption for all note data
 - ✅ **Password Security** - MD5 hashing (as specified in requirements)
 - ✅ **CSRF Protection** - Token-based request validation
 - ✅ **Secure Cookies** - HttpOnly, Secure, SameSite flags
@@ -152,14 +161,15 @@ Fully responsive design that works perfectly on all devices.
 - ✅ **Route Protection** - Authentication required for all operations
 - ✅ **Input Validation** - Server-side validation for all user inputs
 - ✅ **Session Management** - Automatic expiration and cleanup
+- ⚠️ **Encryption Key** - Hard-coded in source (see Security Notes below)
 
 ## 📱 User Interface Features
 
 ### Editor
-- **Split-pane layout** - Edit and preview side by side
-- **Real-time preview** - See formatted output as you type
+- **Automatic encryption** - All content encrypted before transmission
+- **Real-time editing** - Smooth editing experience with encryption
 - **Syntax highlighting** - Visual feedback for markdown syntax
-- **Auto-save** - Never lose your work
+- **Auto-save** - Never lose your work (with encryption)
 - **Keyboard shortcuts** - Ctrl+S to save, Tab support in editor
 
 ### Navigation
@@ -185,28 +195,32 @@ note-gcp/
 │   ├── config.py          # Configuration management
 │   ├── auth/              # Authentication logic
 │   │   └── auth.py        # Session management & security
+│   ├── crypto/            # Encryption utilities
+│   │   └── encryption.py  # AES-GCM encryption functions
 │   ├── models/            # Data models
 │   │   └── notes.py       # Note data structures
 │   ├── repositories/      # Data access layer
 │   │   └── firestore.py   # Firestore integration
 │   ├── routers/           # API endpoints
 │   │   ├── auth.py        # Authentication routes
-│   │   └── notes.py       # Notes CRUD routes
+│   │   └── notes.py       # Notes CRUD routes (with encryption)
 │   ├── templates/         # HTML templates
 │   │   ├── base.html      # Base template
 │   │   ├── login.html     # Login page
-│   │   ├── notes_list.html# Notes listing
-│   │   ├── note_editor.html# Note editor
-│   │   └── note_preview.html# Note preview
+│   │   ├── notes_list.html# Notes listing (with decryption)
+│   │   ├── note_editor.html# Note editor (with encryption)
+│   │   └── note_preview.html# Note preview (with decryption)
 │   └── static/            # Static assets
 │       ├── css/
 │       │   └── style.css  # Main stylesheet
 │       └── js/
+│           ├── crypto.js  # Client-side encryption utilities
 │           └── editor.js  # Editor functionality
 ├── requirements.txt       # Python dependencies
 ├── Dockerfile            # Container configuration
 ├── app.yaml              # GCP App Engine config
 ├── .env.example          # Environment variables template
+├── e2e_encryption_prd.md  # End-to-end encryption requirements
 └── docs/                 # Documentation
     ├── PRD.md
     ├── PLAN.md
@@ -249,9 +263,9 @@ gcloud app logs tail
 | `GET` | `/notes/{id}` | Edit note form |
 | `POST` | `/notes/{id}` | Update note |
 | `DELETE` | `/notes/{id}` | Delete note |
-| `GET` | `/notes/{id}/preview` | Preview note as HTML |
-| `GET` | `/api/notes` | JSON API: Get notes |
-| `POST` | `/api/notes/{id}/preview` | JSON API: Preview markdown |
+| `GET` | `/notes/{id}/preview` | Preview note as HTML (encrypted) |
+| `GET` | `/api/notes` | JSON API: Get notes (encrypted) |
+| `GET` | `/api/notes/{id}/preview` | JSON API: Preview markdown (encrypted) |
 
 ## 🧪 Testing
 
@@ -268,11 +282,13 @@ python test_basic.py
 
 ### Test Checklist
 - [ ] Authentication flow (login/logout)
-- [ ] Note CRUD operations
-- [ ] Real-time preview functionality
-- [ ] Search capability
+- [ ] Note CRUD operations with encryption
+- [ ] Client-side encryption/decryption
+- [ ] Preview functionality with encrypted content
+- [ ] Search capability (server-side on unencrypted data)
 - [ ] Responsive design
-- [ ] Security features (CSRF, sessions)
+- [ ] Security features (CSRF, sessions, encryption)
+- [ ] Browser compatibility (Web Crypto API)
 - [ ] Error handling
 - [ ] Performance
 
@@ -314,11 +330,27 @@ Detailed deployment instructions in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 | `SECRET_KEY` | JWT signing key | Random 32+ chars |
 | `ENVIRONMENT` | Runtime environment | `development`/`production` |
 
+### Encryption Configuration
+
+**⚠️ Security Note**: The application uses a hard-coded AES key for encryption. This is insecure by design but accepted per requirements for simplicity.
+
+**Current Key**: `0123456789abcdef0123456789abcdef` (32 bytes)
+
+**To change the encryption key**:
+1. Update `AES_KEY_BYTES` in `app/crypto/encryption.py`
+2. Update the corresponding key in `app/static/js/crypto.js`
+3. Ensure both keys are identical (32 bytes each)
+4. **Warning**: Changing the key will make existing encrypted data unreadable
+
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for detailed key change instructions.
+
 ### Security Configuration
 - **Session expiry**: 24 hours
 - **CSRF tokens**: Required for state-changing operations
 - **Password hashing**: MD5 (as per requirements)
 - **Cookie security**: HttpOnly, Secure (in production), SameSite
+- **Encryption**: AES-GCM 256-bit, 12-byte nonce, Base64 encoding
+- **Browser requirements**: Modern browser with Web Crypto API support
 
 ### Performance Configuration
 - **Auto-scaling**: 0-2 instances
@@ -362,6 +394,9 @@ Common issues and solutions:
 2. **Firestore errors**: Verify project ID and authentication setup
 3. **CSS not loading**: Check static file configuration
 4. **Deployment fails**: Review GCP project settings and quotas
+5. **Encryption errors**: Ensure browser supports Web Crypto API
+6. **Key mismatch**: Verify server and client encryption keys are identical
+7. **Old data unreadable**: Encryption key may have changed
 
 ### Getting Help
 - Check application logs: `gcloud app logs tail`

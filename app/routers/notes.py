@@ -7,6 +7,7 @@ import markdown
 from app.models.notes import Note, NoteCreate, NoteUpdate, NoteSummary, create_note_summary
 from app.repositories.firestore import get_repository, FirestoreRepository
 from app.auth.auth import require_auth, generate_csrf_token
+from app.crypto.encryption import encrypt_data, decrypt_data, EncryptionError
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -30,8 +31,18 @@ async def notes_list(
         else:
             notes = await repository.get_notes(limit, offset)
         
-        # Create summaries for display
-        note_summaries = [create_note_summary(note) for note in notes]
+        # Create summaries for display and encrypt sensitive fields
+        note_summaries = []
+        for note in notes:
+            summary = create_note_summary(note)
+            # Encrypt title and content_preview for transmission
+            try:
+                summary_dict = summary.dict()
+                summary_dict['title'] = encrypt_data(summary_dict['title'])
+                summary_dict['content_preview'] = encrypt_data(summary_dict['content_preview'])
+                note_summaries.append(summary_dict)
+            except EncryptionError as e:
+                raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
         
         return templates.TemplateResponse("notes_list.html", {
             "request": request,
@@ -79,13 +90,28 @@ async def create_note(
     repository = get_repository()
     
     try:
-        note_data = NoteCreate(title=title, content=content)
+        # Decrypt incoming encrypted data
+        try:
+            decrypted_title = decrypt_data(title)
+            decrypted_content = decrypt_data(content)
+        except EncryptionError as e:
+            raise HTTPException(status_code=400, detail=f"Decryption error: {str(e)}")
+        
+        note_data = NoteCreate(title=decrypted_title, content=decrypted_content)
         note = await repository.create_note(note_data)
+        
+        # Encrypt note data for template
+        try:
+            note_dict = note.dict()
+            note_dict['title'] = encrypt_data(note_dict['title'])
+            note_dict['content'] = encrypt_data(note_dict['content'])
+        except EncryptionError as e:
+            raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
         
         return templates.TemplateResponse("note_editor.html", {
             "request": request,
             "title": "Edit Note",
-            "note": note,
+            "note": note_dict,
             "csrf_token": generate_csrf_token(),
             "is_editing": True,
             "message": "Note created successfully!"
@@ -119,10 +145,18 @@ async def get_note_editor(
         
         csrf_token = generate_csrf_token()
         
+        # Encrypt note data for template
+        try:
+            note_dict = note.dict()
+            note_dict['title'] = encrypt_data(note_dict['title'])
+            note_dict['content'] = encrypt_data(note_dict['content'])
+        except EncryptionError as e:
+            raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
+        
         return templates.TemplateResponse("note_editor.html", {
             "request": request,
             "title": f"Edit: {note.title}",
-            "note": note,
+            "note": note_dict,
             "csrf_token": csrf_token,
             "is_editing": True
         })
@@ -149,16 +183,31 @@ async def update_note(
     repository = get_repository()
     
     try:
-        note_update = NoteUpdate(title=title, content=content)
+        # Decrypt incoming encrypted data
+        try:
+            decrypted_title = decrypt_data(title)
+            decrypted_content = decrypt_data(content)
+        except EncryptionError as e:
+            raise HTTPException(status_code=400, detail=f"Decryption error: {str(e)}")
+        
+        note_update = NoteUpdate(title=decrypted_title, content=decrypted_content)
         note = await repository.update_note(note_id, note_update)
         
         if not note:
             raise HTTPException(status_code=404, detail="Note not found")
         
+        # Encrypt note data for template
+        try:
+            note_dict = note.dict()
+            note_dict['title'] = encrypt_data(note_dict['title'])
+            note_dict['content'] = encrypt_data(note_dict['content'])
+        except EncryptionError as e:
+            raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
+        
         return templates.TemplateResponse("note_editor.html", {
             "request": request,
             "title": f"Edit: {note.title}",
-            "note": note,
+            "note": note_dict,
             "csrf_token": generate_csrf_token(),
             "is_editing": True,
             "message": "Note updated successfully!"
@@ -218,11 +267,20 @@ async def preview_note(
         md = markdown.Markdown(extensions=['extra', 'codehilite'])
         html_content = md.convert(note.content)
         
+        # Encrypt data for template
+        try:
+            note_dict = note.dict()
+            note_dict['title'] = encrypt_data(note_dict['title'])
+            note_dict['content'] = encrypt_data(note_dict['content'])
+            encrypted_html = encrypt_data(html_content)
+        except EncryptionError as e:
+            raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
+        
         return templates.TemplateResponse("note_preview.html", {
             "request": request,
             "title": f"Preview: {note.title}",
-            "note": note,
-            "html_content": html_content
+            "note": note_dict,
+            "html_content": encrypted_html
         })
     except HTTPException:
         raise
@@ -247,7 +305,18 @@ async def api_get_notes(
         else:
             notes = await repository.get_notes(limit, offset)
         
-        return [create_note_summary(note) for note in notes]
+        # Encrypt summaries for API response
+        encrypted_summaries = []
+        for note in notes:
+            summary = create_note_summary(note)
+            try:
+                summary_dict = summary.dict()
+                summary_dict['title'] = encrypt_data(summary_dict['title'])
+                summary_dict['content_preview'] = encrypt_data(summary_dict['content_preview'])
+                encrypted_summaries.append(summary_dict)
+            except EncryptionError as e:
+                raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
+        return encrypted_summaries
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading notes: {str(e)}")
 
@@ -265,32 +334,19 @@ async def api_preview_note(
         if not note:
             raise HTTPException(status_code=404, detail="Note not found")
         
-        # Convert markdown to HTML
+        # Convert markdown to HTML and encrypt
         md = markdown.Markdown(extensions=['extra', 'codehilite'])
         html_content = md.convert(note.content)
         
-        return {"html": html_content}
+        try:
+            encrypted_html = encrypt_data(html_content)
+        except EncryptionError as e:
+            raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
+        
+        return {"html": encrypted_html}
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error previewing note: {str(e)}")
 
 
-@router.post("/api/notes/{note_id}/preview")
-async def api_preview_markdown(
-    note_id: str,
-    request: Request,
-    current_user: str = Depends(require_auth)
-):
-    """API endpoint to preview markdown content without saving"""
-    try:
-        body = await request.json()
-        content = body.get("content", "")
-        
-        # Convert markdown to HTML
-        md = markdown.Markdown(extensions=['extra', 'codehilite'])
-        html_content = md.convert(content)
-        
-        return {"html": html_content}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error previewing markdown: {str(e)}")

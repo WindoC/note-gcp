@@ -26,14 +26,13 @@
     {% for note in notes %}
     <div class="note-card">
         <div class="note-header">
-            <h3><a href="/notes/{{ note.id }}/preview">{{ note.title }}</a></h3>
+            <h3><a href="/notes/{{ note.id }}/preview" data-encrypted-title="{{ note.title }}"></a></h3>
             <div class="note-date">
                 Updated: {{ note.updated_at.strftime('%Y-%m-%d %H:%M') }}
             </div>
         </div>
         
-        <div class="note-preview">
-            {{ note.content_preview }}
+        <div class="note-preview" data-encrypted-preview="{{ note.content_preview }}">
         </div>
         
         <div class="note-actions">
@@ -71,7 +70,45 @@
 </div>
 {% endif %}
 
+<script src="/static/js/crypto.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // // Check if crypto is supported
+    // if (!window.NoteCrypto || !window.NoteCrypto.isCryptoSupported()) {
+    //     alert('This browser does not support the required encryption features. Please use a modern browser.');
+    //     return;
+    // }
+
+    // Decrypt note titles and previews
+    await decryptNotesList();
+});
+
+async function decryptNotesList() {
+    try {
+        // Decrypt titles
+        const titleLinks = document.querySelectorAll('a[data-encrypted-title]');
+        for (const link of titleLinks) {
+            const encryptedTitle = link.getAttribute('data-encrypted-title');
+            if (encryptedTitle) {
+                const decryptedTitle = await window.NoteCrypto.decryptData(encryptedTitle);
+                link.textContent = decryptedTitle;
+            }
+        }
+
+        // Decrypt content previews
+        const previewDivs = document.querySelectorAll('div[data-encrypted-preview]');
+        for (const div of previewDivs) {
+            const encryptedPreview = div.getAttribute('data-encrypted-preview');
+            if (encryptedPreview) {
+                const decryptedPreview = await window.NoteCrypto.decryptData(encryptedPreview);
+                div.textContent = decryptedPreview;
+            }
+        }
+    } catch (error) {
+        window.NoteCrypto.showCryptoError('Failed to decrypt note list: ' + error.message);
+    }
+}
+
 async function deleteNote(noteId) {
     if (!confirm('Are you sure you want to delete this note?')) {
         return;

@@ -1,6 +1,6 @@
 # Deployment Guide: GCP App Engine & Firestore Setup
 
-This guide will walk you through setting up Google Cloud Platform (GCP) App Engine and Firestore for your markdown notes application.
+This guide will walk you through setting up Google Cloud Platform (GCP) App Engine and Firestore for your encrypted markdown notes application.
 
 ## Prerequisites
 
@@ -384,10 +384,74 @@ gcloud app services list
 | `SECRET_KEY` | JWT secret key | Random 32+ character string |
 | `ENVIRONMENT` | Environment mode | `production` or `development` |
 
+## Encryption Key Management
+
+### ⚠️ Changing the Encryption Key
+
+The application uses a hard-coded AES-256 key for client-server encryption. **Changing this key will make all existing encrypted data unreadable**.
+
+**Current Key**: `0123456789abcdef0123456789abcdef` (32 bytes)
+
+### Steps to Change the Key:
+
+1. **Generate a new 32-byte key**:
+   ```python
+   import secrets
+   key = secrets.token_hex(16)  # 16 bytes = 32 hex chars
+   print(f"New key: {key}")
+   ```
+
+2. **Update server-side key** in `app/crypto/encryption.py`:
+   ```python
+   # Replace this line:
+   AES_KEY = b'0123456789abcdef0123456789abcdef'
+   
+   # With your new key (example):
+   AES_KEY = b'your-new-32-byte-key-here-exactly'
+   ```
+
+3. **Update client-side key** in `app/static/js/crypto.js`:
+   ```javascript
+   // Replace the AES_KEY_BYTES array with your new key bytes
+   const AES_KEY_BYTES = new Uint8Array([
+       // Convert your 32-byte key to byte array
+       0x79, 0x6f, 0x75, 0x72, // 'your'
+       // ... (32 bytes total)
+   ]);
+   ```
+
+4. **Key Conversion Helper**:
+   ```python
+   # Python script to convert hex key to byte arrays
+   key_hex = "your-new-32-byte-key-here-exactly"
+   key_bytes = key_hex.encode('ascii')
+   
+   print(f"Python: AES_KEY = b'{key_hex}'")
+   print(f"JavaScript: const AES_KEY_BYTES = new Uint8Array({list(key_bytes)});")
+   ```
+
+5. **Deploy both changes together**:
+   ```bash
+   # Test locally first
+   python -m app.main
+   
+   # Then deploy
+   gcloud app deploy
+   ```
+
+### Important Notes:
+- Both server and client keys must be **identical**
+- Keys must be exactly **32 bytes** (256 bits)
+- Changing keys will make existing notes unreadable
+- Test thoroughly in development before production deployment
+- Consider data migration if you have existing encrypted notes
+
 ## Security Checklist
 
 - [ ] Changed default password and generated new hash
 - [ ] Generated strong random secret key
+- [ ] **Reviewed encryption key security (consider changing from default)**
+- [ ] **Verified server and client encryption keys match**
 - [ ] Configured Firestore security rules
 - [ ] Enabled HTTPS (automatic with App Engine)
 - [ ] Set up proper IAM permissions
@@ -395,15 +459,18 @@ gcloud app services list
 - [ ] Reviewed application logs
 - [ ] Tested authentication flow
 - [ ] Verified CSRF protection works
+- [ ] **Tested encryption/decryption functionality**
 
 ## Next Steps
 
 After deployment:
 1. Test all functionality (login, create/edit/delete notes, search)
-2. Create your first note to verify Firestore connectivity
-3. Set up monitoring and alerts
-4. Plan regular backups if needed
-5. Consider setting up a staging environment
+2. **Verify encryption is working** (check network traffic shows encrypted content)
+3. **Test client-side decryption** (ensure notes display correctly)
+4. Create your first note to verify Firestore connectivity
+5. Set up monitoring and alerts
+6. Plan regular backups if needed
+7. Consider setting up a staging environment
 
 Your markdown notes application should now be running securely on GCP App Engine with Firestore as the database backend!
 
