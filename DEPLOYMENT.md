@@ -122,13 +122,17 @@ gcloud app create --region=us-central
 
 #### Update app.yaml with your project details:
 ```yaml
-runtime: python313
+runtime: python
 service: default
 env: flex
+entrypoint: gunicorn -b :$PORT --worker-class uvicorn.workers.UvicornWorker app.main:app
+runtime_config:
+  operating_system: "ubuntu22"
+  runtime_version: "3.13"
 
 automatic_scaling:
-  min_num_instances: 0
-  max_num_instances: 2
+  min_num_instances: 1
+  max_num_instances: 1
 
 env_variables:
   USERNAME: "admin"
@@ -291,11 +295,12 @@ App Engine Flexible environment costs:
 
 ### 10.2 Cost Optimization
 ```bash
-# Set minimum instances to 0 for development
+# Note: App Engine Flexible cannot scale to 0 instances
+# Minimum value for min_num_instances is 1
 # In app.yaml:
 automatic_scaling:
-  min_num_instances: 0  # Allows scaling to zero
-  max_num_instances: 1  # Limit max instances
+  min_num_instances: 1  # Minimum allowed value
+  max_num_instances: 1  # Limit max instances for cost control
 ```
 
 ### 10.3 Monitor Costs

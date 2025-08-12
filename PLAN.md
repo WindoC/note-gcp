@@ -176,13 +176,17 @@ CMD exec gunicorn --bind :$PORT --workers 1 --worker-class uvicorn.workers.Uvico
 
 ### 5.2 App Engine Configuration (app.yaml)
 ```yaml
-runtime: python313
+runtime: python
 service: default
 env: flex
+entrypoint: gunicorn -b :$PORT --worker-class uvicorn.workers.UvicornWorker app.main:app
+runtime_config:
+  operating_system: "ubuntu22"
+  runtime_version: "3.13"
 
 automatic_scaling:
-  min_num_instances: 0
-  max_num_instances: 2
+  min_num_instances: 1
+  max_num_instances: 1
 
 env_variables:
   USERNAME: "admin"
