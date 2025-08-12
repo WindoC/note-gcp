@@ -1,10 +1,10 @@
 // Enhanced editor functionality with encryption support
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if crypto is supported
-    if (!window.NoteCrypto || !window.NoteCrypto.isCryptoSupported()) {
-        alert('This browser does not support the required encryption features. Please use a modern browser.');
-        return;
-    }
+    // // Check if crypto is supported
+    // if (!window.NoteCrypto || !window.NoteCrypto.isCryptoSupported()) {
+    //     alert('This browser does not support the required encryption features. Please use a modern browser.');
+    //     return;
+    // }
 
     // Auto-resize textareas (for pages that don't have custom editor functionality)
     const textareas = document.querySelectorAll('textarea:not(#markdown-content)');
