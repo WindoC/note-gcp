@@ -10,12 +10,12 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
-                <h1><a href="/notes">📝 Markdown Notes</a></h1>
+                <h1><a href="/notes" onclick="return confirmNavigationIfEditor(event, '/notes')">📝 Markdown Notes</a></h1>
             </div>
             <div class="nav-links">
                 <!-- <a href="/notes">List Notes</a> -->
-                <a href="/notes/new">Create Note</a>
-                <form method="post" action="/logout" style="display: inline;">
+                <a href="/notes/new" onclick="return confirmNavigationIfEditor(event, '/notes/new')">Create Note</a>
+                <form method="post" action="/logout" style="display: inline;" onsubmit="return confirmLogoutIfEditor(event)">
                     <button type="submit" class="nav-link-btn btn btn-danger">Logout</button>
                 </form>
             </div>
@@ -38,5 +38,31 @@
     </main>
     
     <script src="/static/js/editor.js"></script>
+    <script>
+    // Global navigation protection functions
+    function confirmNavigationIfEditor(event, targetUrl) {
+        // Only show warning if we're on an editor page and have unsaved changes
+        if (typeof window.hasUnsavedChanges === 'function' && window.hasUnsavedChanges()) {
+            event.preventDefault();
+            if (confirm('You have unsaved changes. Are you sure you want to leave without saving?')) {
+                window.location.href = targetUrl;
+            }
+            return false;
+        }
+        return true;
+    }
+    
+    function confirmLogoutIfEditor(event) {
+        // Only show warning if we're on an editor page and have unsaved changes
+        if (typeof window.hasUnsavedChanges === 'function' && window.hasUnsavedChanges()) {
+            event.preventDefault();
+            if (confirm('You have unsaved changes. Are you sure you want to logout without saving?')) {
+                event.target.submit();
+            }
+            return false;
+        }
+        return true;
+    }
+    </script>
 </body>
 </html>

@@ -13,9 +13,9 @@
         <button type="button" onclick="deleteNote('{{ note.id }}')" class="btn btn-danger">Delete Note</button>
         {% endif %}
         {% if is_editing and note and note.id %}
-        <a href="/notes/{{ note.id }}/preview" class="btn btn-secondary" target="_blank">Preview</a>
+        <a href="/notes/{{ note.id }}/preview" class="btn btn-secondary" target="_blank" onclick="return confirmPreview(event, '/notes/{{ note.id }}/preview')">Preview</a>
         {% endif %}
-        <a href="/notes" class="btn btn-secondary">Back to Notes</a>
+        <a href="/notes" class="btn btn-secondary" onclick="return confirmNavigation(event, '/notes')">Back to Notes</a>
     </div>
 </div>
 
@@ -46,16 +46,46 @@
 </form>
 
 <script>
-// Enhanced editor functionality
+// Enhanced editor functionality with unsaved changes protection
 document.addEventListener('DOMContentLoaded', function() {
     const markdownEditor = document.querySelector('#markdown-content');
+    const titleInput = document.querySelector('#title');
+    const form = document.querySelector('#note-form');
     
-    if (markdownEditor) {
-        // Auto-resize textarea
+    // Track form state
+    let originalFormState = {};
+    let hasUnsavedChanges = false;
+    let isSubmitting = false;
+    
+    if (markdownEditor && titleInput) {
+        // Store original form state
+        originalFormState = {
+            title: titleInput.value,
+            content: markdownEditor.value
+        };
+        
+        // Check for unsaved changes
+        function checkForChanges() {
+            const currentState = {
+                title: titleInput.value,
+                content: markdownEditor.value
+            };
+            
+            hasUnsavedChanges = (
+                currentState.title !== originalFormState.title ||
+                currentState.content !== originalFormState.content
+            );
+        }
+        
+        // Auto-resize textarea and check for changes
         markdownEditor.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
+            checkForChanges();
         });
+        
+        // Check for changes on title input
+        titleInput.addEventListener('input', checkForChanges);
         
         // Tab key support in textarea
         markdownEditor.addEventListener('keydown', function(e) {
@@ -67,10 +97,65 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Insert tab character
                 this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
                 this.selectionStart = this.selectionEnd = start + 1;
+                checkForChanges();
             }
         });
     }
+    
+    // Form submission handler
+    if (form) {
+        form.addEventListener('submit', function() {
+            isSubmitting = true;
+            hasUnsavedChanges = false;
+        });
+    }
+    
+    // Make functions available globally
+    window.hasUnsavedChanges = function() {
+        return hasUnsavedChanges && !isSubmitting;
+    };
+    
+    window.clearUnsavedChanges = function() {
+        hasUnsavedChanges = false;
+        originalFormState = {
+            title: titleInput.value,
+            content: markdownEditor.value
+        };
+    };
+    
+    // Browser navigation warning (beforeunload)
+    window.addEventListener('beforeunload', function(e) {
+        if (window.hasUnsavedChanges()) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            return e.returnValue;
+        }
+    });
 });
+
+// Navigation confirmation helper
+function confirmNavigation(event, targetUrl) {
+    if (window.hasUnsavedChanges()) {
+        event.preventDefault();
+        if (confirm('You have unsaved changes. Are you sure you want to leave without saving?')) {
+            window.location.href = targetUrl;
+        }
+        return false;
+    }
+    return true;
+}
+
+// Preview confirmation helper
+function confirmPreview(event, targetUrl) {
+    if (window.hasUnsavedChanges()) {
+        event.preventDefault();
+        if (confirm('You have unsaved changes. Are you sure you want to open preview without saving?')) {
+            window.open(targetUrl, '_blank');
+        }
+        return false;
+    }
+    return true;
+}
 
 async function deleteNote(noteId) {
     if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
