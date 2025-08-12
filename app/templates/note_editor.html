@@ -37,15 +37,27 @@
     
     <div class="form-group">
         <label for="title">Title:</label>
-        <input type="text" id="title" name="title" value="{{ note.title if note else '' }}" required maxlength="255">
+        <input type="text" id="title" name="title" value="" required maxlength="255">
     </div>
     
     <div class="form-group">
         <label for="content">Content:</label>
-        <textarea id="markdown-content" name="content" placeholder="Write your markdown here...">{{ note.content if note else '' }}</textarea>
+        <textarea id="markdown-content" name="content" placeholder="Write your markdown here..."></textarea>
     </div>
 </form>
 
+<!-- Store encrypted note data for JavaScript -->
+{% if note %}
+<script>
+window.noteData = {
+    title: "{{ note.title | e }}",
+    content: "{{ note.content | e }}"
+};
+</script>
+{% endif %}
+
+<script src="/static/js/crypto.js"></script>
+<script src="/static/js/editor.js"></script>
 <script>
 // Enhanced editor functionality with unsaved changes protection
 document.addEventListener('DOMContentLoaded', function() {

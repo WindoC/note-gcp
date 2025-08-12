@@ -1,13 +1,14 @@
 # Local Testing Guide
 
-This guide provides step-by-step instructions for testing the markdown notes application locally before deploying to GCP.
+This guide provides step-by-step instructions for testing the encrypted markdown notes application locally before deploying to GCP.
 
 ## Prerequisites
 
 - Python 3.13+ installed
 - Git (optional, for cloning)
-- Modern web browser
+- **Modern web browser with Web Crypto API support** (Chrome 37+, Firefox 34+, Safari 7+, Edge 12+)
 - Text editor or IDE
+- Developer tools enabled in browser (for encryption testing)
 
 ## Step 1: Environment Setup
 
@@ -165,7 +166,18 @@ Navigate to: http://localhost:8080
 
 ## Step 5: Manual Testing Checklist
 
-### 5.1 Health Check Test
+### 5.1 Browser Compatibility Test (IMPORTANT)
+**First check:** Verify your browser supports Web Crypto API
+
+Open browser developer console (F12) and run:
+```javascript
+console.log(!!window.crypto && !!window.crypto.subtle);
+// Should return: true
+```
+
+✅ **Pass Criteria:** Returns `true` (if `false`, use a modern browser)
+
+### 5.2 Health Check Test
 **URL:** http://localhost:8080/health
 
 **Expected Response:**
@@ -179,14 +191,14 @@ Navigate to: http://localhost:8080
 
 ✅ **Pass Criteria:** Status is "healthy" and environment shows "development"
 
-### 5.2 Root Redirect Test
+### 5.3 Root Redirect Test
 **URL:** http://localhost:8080/
 
 **Expected Behavior:** Should redirect to `/login` (since no user is authenticated)
 
 ✅ **Pass Criteria:** Redirects to login page
 
-### 5.3 Login Page Test
+### 5.4 Login Page Test
 **URL:** http://localhost:8080/login
 
 **Test Cases:**
@@ -226,7 +238,76 @@ Navigate to: http://localhost:8080
 
 ✅ **Pass Criteria:** Protected routes require authentication
 
-### 5.5 Notes Functionality Tests (Requires Firestore)
+### 5.5 Encryption Testing (CRITICAL)
+
+#### Test Case 1: Verify Client-Side Encryption
+**Steps:**
+1. Login and go to create new note
+2. Open browser developer tools (F12) → Network tab
+3. Enter title: "Secret Test" and content: "This is **confidential** information"
+4. Watch the network request when clicking "Save Note"
+
+**Expected:**
+- Form data should show encrypted values (long base64 strings)
+- Title and content fields should NOT show plain text
+- You should see something like: `title=AbCdEf123...&content=XyZ789...`
+
+✅ **Pass Criteria:** Network traffic shows encrypted data, not plain text
+
+#### Test Case 2: Verify Server-Side Decryption
+**Steps:**
+1. Create a note with content: "# Test Header\nThis is **encrypted** content"
+2. Save the note
+3. Go back to edit the same note
+
+**Expected:**
+- Server correctly decrypts the data
+- Note content displays as plain text for editing
+- Markdown formatting is preserved
+
+✅ **Pass Criteria:** Notes are correctly decrypted and displayed for editing
+
+#### Test Case 3: Verify Notes List Encryption
+**Steps:**
+1. Create several notes with different titles
+2. Go to notes list (`/notes`)
+3. Open browser Network tab and refresh the page
+4. Check the API response for the notes list
+
+**Expected:**
+- Network response shows encrypted titles and previews
+- Page displays decrypted content to user
+- All note titles/previews are readable on screen
+
+✅ **Pass Criteria:** List data is transmitted encrypted but displays correctly
+
+#### Test Case 4: Verify Preview Encryption
+**Steps:**
+1. Create a note with markdown content
+2. Click "Preview" button
+3. Check Network tab for the preview request
+
+**Expected:**
+- Preview HTML is transmitted encrypted
+- Page displays properly formatted HTML
+- All markdown formatting renders correctly
+
+✅ **Pass Criteria:** Preview content encrypted in transit, properly rendered
+
+#### Test Case 5: Encryption Error Handling
+**Steps:**
+1. Open browser console (F12)
+2. Temporarily break encryption by typing: `window.NoteCrypto = null`
+3. Try to create or edit a note
+
+**Expected:**
+- Clear error messages displayed
+- User notified of encryption failures
+- Application doesn't crash or expose data
+
+✅ **Pass Criteria:** Graceful error handling for encryption issues
+
+### 5.6 Notes Functionality Tests (Requires Firestore)
 
 #### Test Case 1: Empty Notes List
 **URL:** http://localhost:8080/notes (after login)
@@ -236,7 +317,7 @@ Navigate to: http://localhost:8080
 - "Create your first note" button
 - Navigation bar with "List Notes", "Create Note", "Logout"
 
-#### Test Case 2: Create New Note
+#### Test Case 2: Create New Note (With Encryption)
 **Steps:**
 1. Click "Create Note" or go to `/notes/new`
 2. Enter title: "Test Note"
@@ -302,7 +383,7 @@ Navigate to: http://localhost:8080
 - Clear search button works
 - Empty search shows all notes
 
-### 5.6 Logout Test
+### 5.7 Logout Test
 **Steps:**
 1. While logged in, click "Logout" in navigation
 2. Try to access `/notes`
@@ -312,7 +393,7 @@ Navigate to: http://localhost:8080
 - Redirects to login page
 - Cannot access protected routes
 
-### 5.7 CSRF Protection Test
+### 5.8 CSRF Protection Test
 **Test:** Manual CSRF token verification
 
 **Steps:**
@@ -324,7 +405,7 @@ Navigate to: http://localhost:8080
 - CSRF token present in form
 - Form submission fails without valid token
 
-### 5.8 Responsive Design Test
+### 5.9 Responsive Design Test
 **Steps:**
 1. Test on different screen sizes
 2. Use browser dev tools to simulate mobile devices
@@ -446,6 +527,12 @@ gcloud auth application-default login
 - Check secret key configuration
 - Look for CSRF token issues
 
+### Issue 6: Encryption not working
+- Check browser console for JavaScript errors
+- Verify Web Crypto API support: `console.log(!!window.crypto.subtle)`
+- Ensure server and client keys match
+- Check for mixed content issues (HTTP vs HTTPS)
+
 ## Testing Automation (Optional)
 
 ### Create a simple test script:
@@ -490,14 +577,16 @@ Before deploying to production:
 
 - [ ] All manual tests pass
 - [ ] No console errors in browser
+- [ ] **Encryption tests all pass (CRITICAL)**
+- [ ] **Browser compatibility verified (Web Crypto API)**
+- [ ] **Network traffic shows encrypted data**
 - [ ] Authentication flow works correctly
 - [ ] CRUD operations function properly
-- [ ] Real-time preview works
 - [ ] Search functionality works
 - [ ] Responsive design tested
 - [ ] Error handling tested
 - [ ] Performance is acceptable
-- [ ] Security measures verified (CSRF, sessions)
+- [ ] Security measures verified (CSRF, sessions, encryption)
 
 ## Success Criteria Summary
 
@@ -506,11 +595,11 @@ Your local testing is successful when:
 1. **✅ Application starts** without errors
 2. **✅ Health endpoint** returns healthy status
 3. **✅ Authentication works** (login/logout)
-4. **✅ CRUD operations** work for notes
-5. **✅ Real-time preview** functions in editor
+4. **✅ Encryption works end-to-end** (CRITICAL)
+5. **✅ CRUD operations** work for notes
 6. **✅ Search** finds notes correctly
 7. **✅ Responsive design** works on mobile
-8. **✅ Security features** are functional (CSRF, sessions)
+8. **✅ Security features** are functional (CSRF, sessions, encryption)
 
 Once all tests pass, you're ready to deploy to GCP App Engine using the instructions in `DEPLOYMENT.md`!
 

@@ -5,7 +5,7 @@
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <div>
-        <h2>{{ note.title }}</h2>
+        <h2 data-encrypted-title="{{ note.title | e }}"></h2>
         <div style="color: #6c757d; font-size: 0.9rem;">
             Created: {{ note.created_at.strftime('%Y-%m-%d %H:%M') }} | 
             Updated: {{ note.updated_at.strftime('%Y-%m-%d %H:%M') }}
@@ -18,8 +18,11 @@
 </div>
 
 <div class="preview-container">
-    <div class="preview-content">
-        {{ html_content | safe }}
+    <div class="preview-content" data-encrypted-html="{{ html_content | e }}">
+        <div style="text-align: center; padding: 2rem; color: #6c757d;">
+            <div style="margin-bottom: 1rem;">🔓 Decrypting content...</div>
+            <div style="font-size: 0.875rem;">Please wait while the content is being decrypted.</div>
+        </div>
     </div>
 </div>
 
@@ -216,4 +219,46 @@
     }
 }
 </style>
+
+<script src="/static/js/crypto.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check if crypto is supported
+    if (!window.NoteCrypto || !window.NoteCrypto.isCryptoSupported()) {
+        alert('This browser does not support the required encryption features. Please use a modern browser.');
+        return;
+    }
+
+    try {
+        // Decrypt title
+        const titleElement = document.querySelector('h2[data-encrypted-title]');
+        if (titleElement) {
+            const encryptedTitle = titleElement.getAttribute('data-encrypted-title');
+            const decryptedTitle = await window.NoteCrypto.decryptData(encryptedTitle);
+            titleElement.textContent = decryptedTitle;
+        }
+
+        // Decrypt HTML content
+        const contentElement = document.querySelector('.preview-content[data-encrypted-html]');
+        if (contentElement) {
+            const encryptedHtml = contentElement.getAttribute('data-encrypted-html');
+            const decryptedHtml = await window.NoteCrypto.decryptData(encryptedHtml);
+            contentElement.innerHTML = decryptedHtml;
+        }
+    } catch (error) {
+        window.NoteCrypto.showCryptoError('Failed to decrypt preview content: ' + error.message);
+        
+        // Show error in content area
+        const contentElement = document.querySelector('.preview-content');
+        if (contentElement) {
+            contentElement.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #dc3545;">
+                    <div style="margin-bottom: 1rem;">❌ Decryption Error</div>
+                    <div style="font-size: 0.875rem;">Failed to decrypt the content. Please refresh the page and try again.</div>
+                </div>
+            `;
+        }
+    }
+});
+</script>
 {% endblock %}
