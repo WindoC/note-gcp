@@ -14,9 +14,9 @@
             </div>
             <div class="nav-links">
                 <!-- <a href="/notes">List Notes</a> -->
-                <a href="/notes/new" onclick="return confirmNavigationIfEditor(event, '/notes/new')">Create Note</a>
+                <a href="/notes/new" class="btn" onclick="return confirmNavigationIfEditor(event, '/notes/new')">Create</a>
                 <form method="post" action="/logout" style="display: inline;" onsubmit="return confirmLogoutIfEditor(event)">
-                    <button type="submit" class="nav-link-btn btn btn-danger">Logout</button>
+                    <button type="submit" class="btn btn-danger">Logout</button>
                 </form>
             </div>
         </div>

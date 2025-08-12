@@ -66,6 +66,11 @@ body {
     color: #495057;
 }
 
+.nav-links a.btn:hover {
+    background-color: #0056b3 !important;
+    color: white !important;
+}
+
 .nav-link-btn {
     background: none;
     border: none;
@@ -191,6 +196,15 @@ body {
 
 .btn:hover {
     background-color: #0056b3;
+    color: white;
+}
+
+.btn:visited {
+    color: white;
+}
+
+.btn:link {
+    color: white;
 }
 
 .btn-secondary {
