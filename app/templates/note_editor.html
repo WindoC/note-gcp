@@ -39,22 +39,9 @@
         <input type="text" id="title" name="title" value="{{ note.title if note else '' }}" required maxlength="255">
     </div>
     
-    <div class="editor-container">
-        <div class="editor-panel">
-            <h3>Editor</h3>
-            <div class="content">
-                <textarea id="markdown-content" name="content" placeholder="Write your markdown here...">{{ note.content if note else '' }}</textarea>
-            </div>
-        </div>
-        
-        <div class="editor-panel">
-            <h3>Preview</h3>
-            <div class="content">
-                <div id="preview-content" class="preview-content">
-                    <p style="color: #6c757d; font-style: italic;">Start typing to see preview...</p>
-                </div>
-            </div>
-        </div>
+    <div class="form-group">
+        <label for="content">Content:</label>
+        <textarea id="markdown-content" name="content" placeholder="Write your markdown here...">{{ note.content if note else '' }}</textarea>
     </div>
 </form>
 
@@ -62,78 +49,27 @@
 // Enhanced editor functionality
 document.addEventListener('DOMContentLoaded', function() {
     const markdownEditor = document.querySelector('#markdown-content');
-    const previewPane = document.querySelector('#preview-content');
     
-    if (markdownEditor && previewPane) {
-        // Initial preview
-        updatePreview();
+    if (markdownEditor) {
+        // Auto-resize textarea
+        markdownEditor.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
         
-        // Update preview on input
-        markdownEditor.addEventListener('input', debounce(updatePreview, 300));
-    }
-    
-    async function updatePreview() {
-        const content = markdownEditor.value.trim();
-        
-        if (!content) {
-            previewPane.innerHTML = '<p style="color: #6c757d; font-style: italic;">Start typing to see preview...</p>';
-            return;
-        }
-        
-        try {
-            const noteId = '{% if note and note.id %}{{ note.id }}{% else %}preview{% endif %}';
-            const response = await fetch(`/api/notes/${noteId}/preview`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content: content })
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                previewPane.innerHTML = data.html;
-            } else {
-                previewPane.innerHTML = '<p style="color: #dc3545;">Error loading preview</p>';
+        // Tab key support in textarea
+        markdownEditor.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                
+                // Insert tab character
+                this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
             }
-        } catch (error) {
-            previewPane.innerHTML = '<p style="color: #dc3545;">Error loading preview: ' + error.message + '</p>';
-        }
+        });
     }
-    
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-    
-    // Auto-resize textarea
-    markdownEditor.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
-    });
-    
-    // Tab key support in textarea
-    markdownEditor.addEventListener('keydown', function(e) {
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            const start = this.selectionStart;
-            const end = this.selectionEnd;
-            
-            // Insert tab character
-            this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
-            this.selectionStart = this.selectionEnd = start + 1;
-            
-            // Trigger preview update
-            updatePreview();
-        }
-    });
 });
 
 async function deleteNote(noteId) {
