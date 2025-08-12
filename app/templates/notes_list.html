@@ -3,10 +3,10 @@
 {% block title %}{{ title }} - Markdown Notes{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<!-- <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <h2>My Notes</h2>
     <a href="/notes/new" class="btn">Create New Note</a>
-</div>
+</div> -->
 
 <!-- Search Form -->
 <div style="margin-bottom: 2rem;">
@@ -26,7 +26,7 @@
     {% for note in notes %}
     <div class="note-card">
         <div class="note-header">
-            <h3><a href="/notes/{{ note.id }}">{{ note.title }}</a></h3>
+            <h3><a href="/notes/{{ note.id }}/preview">{{ note.title }}</a></h3>
             <div class="note-date">
                 Updated: {{ note.updated_at.strftime('%Y-%m-%d %H:%M') }}
             </div>
@@ -38,7 +38,7 @@
         
         <div class="note-actions">
             <a href="/notes/{{ note.id }}" class="btn btn-sm">Edit</a>
-            <a href="/notes/{{ note.id }}/preview" class="btn btn-sm btn-secondary">Preview</a>
+            <!-- <a href="/notes/{{ note.id }}/preview" class="btn btn-sm btn-secondary">Preview</a> -->
             <button onclick="deleteNote('{{ note.id }}')" class="btn btn-sm btn-danger">Delete</button>
         </div>
     </div>
