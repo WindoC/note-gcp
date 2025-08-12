@@ -73,7 +73,7 @@ cp .env.example .env
 Required environment variables:
 ```env
 USERNAME=admin
-PASSWORD_HASH=5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+PASSWORD_HASH=5f4dcc3b5aa765d61d8327deb882cf99
 FIRESTORE_PROJECT=your-gcp-project-id
 SECRET_KEY=your-super-secret-key-here
 ENVIRONMENT=development

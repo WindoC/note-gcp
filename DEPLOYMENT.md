@@ -136,7 +136,7 @@ automatic_scaling:
 
 env_variables:
   USERNAME: "admin"
-  PASSWORD_HASH: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"  # MD5 of "password"
+  PASSWORD_HASH: "5f4dcc3b5aa765d61d8327deb882cf99"  # MD5 of "password"
   FIRESTORE_PROJECT: "YOUR-PROJECT-ID"  # Replace with your actual project ID
   SECRET_KEY: "your-super-secret-key-change-this-in-production"  # Generate a strong random key
   ENVIRONMENT: "production"
@@ -168,7 +168,7 @@ cp .env.example .env
 Edit `.env` with your values:
 ```env
 USERNAME=admin
-PASSWORD_HASH=5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+PASSWORD_HASH=5f4dcc3b5aa765d61d8327deb882cf99
 FIRESTORE_PROJECT=YOUR-PROJECT-ID
 SECRET_KEY=your-super-secret-key-change-this-in-production
 ENVIRONMENT=development
