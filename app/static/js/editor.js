@@ -18,17 +18,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle note editor form submission with encryption
     const noteForm = document.querySelector('form[action*="/notes"]');
     if (noteForm) {
-        noteForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const titleField = noteForm.querySelector('input[name="title"]');
-            const contentField = noteForm.querySelector('textarea[name="content"]');
-            const csrfField = noteForm.querySelector('input[name="csrf_token"]');
-            
-            if (!titleField || !contentField || !csrfField) {
-                console.error('Required form fields not found');
-                return;
-            }
+        const titleField = noteForm.querySelector('input[name="title"]');
+        const contentField = noteForm.querySelector('textarea[name="content"]');
+        const csrfField = noteForm.querySelector('input[name="csrf_token"]');
+        
+        // Only set up the form handler if all required fields are present (editor page)
+        if (titleField && contentField && csrfField) {
+            noteForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
             
             const submitButton = noteForm.querySelector('button[type="submit"]');
             if (submitButton) {
@@ -58,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+        }
     }
 
     // Decrypt note content for editing (if present)
