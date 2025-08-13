@@ -152,6 +152,86 @@ async function decryptData(encryptedData) {
 }
 
 /**
+ * Encrypt file content for upload
+ * 
+ * @param {File} file - File object to encrypt
+ * @returns {Promise<{encryptedContent: string, filename: string}>} Encrypted file data
+ * @throws {Error} If encryption or file reading fails
+ */
+async function encryptFile(file) {
+    if (!file) {
+        throw new Error('No file provided');
+    }
+    
+    try {
+        // Read file as text
+        const fileContent = await readFileAsText(file);
+        
+        // Encrypt the content
+        const encryptedContent = await encryptData(fileContent);
+        
+        return {
+            encryptedContent: encryptedContent,
+            filename: file.name
+        };
+        
+    } catch (error) {
+        throw new Error('File encryption failed: ' + error.message);
+    }
+}
+
+/**
+ * Read file as text using FileReader
+ * 
+ * @param {File} file - File to read
+ * @returns {Promise<string>} File content as string
+ */
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            resolve(e.target.result);
+        };
+        
+        reader.onerror = function() {
+            reject(new Error('Failed to read file'));
+        };
+        
+        reader.readAsText(file, 'UTF-8');
+    });
+}
+
+/**
+ * Validate file type and size
+ * 
+ * @param {File} file - File to validate
+ * @param {Array<string>} allowedTypes - Array of allowed file extensions
+ * @param {number} maxSize - Maximum file size in bytes
+ * @returns {boolean} True if valid, throws error if invalid
+ */
+function validateFile(file, allowedTypes = ['.txt', '.md'], maxSize = 1024 * 1024) {
+    if (!file) {
+        throw new Error('No file selected');
+    }
+    
+    // Check file size
+    if (file.size > maxSize) {
+        throw new Error(`File size (${Math.round(file.size / 1024)}KB) exceeds ${Math.round(maxSize / 1024)}KB limit`);
+    }
+    
+    // Check file type
+    const fileName = file.name.toLowerCase();
+    const hasValidExtension = allowedTypes.some(type => fileName.endsWith(type.toLowerCase()));
+    
+    if (!hasValidExtension) {
+        throw new Error(`File type not supported. Allowed types: ${allowedTypes.join(', ')}`);
+    }
+    
+    return true;
+}
+
+/**
  * Check if Web Crypto API is supported
  */
 function isCryptoSupported() {
@@ -171,6 +251,9 @@ function showCryptoError(message) {
 window.NoteCrypto = {
     encryptData,
     decryptData,
+    encryptFile,
+    readFileAsText,
+    validateFile,
     isCryptoSupported,
     showCryptoError
 };

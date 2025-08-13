@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Request, HTTPException, Depends, Query, Form
+from fastapi import APIRouter, Request, HTTPException, Depends, Query, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 import markdown
+import os
 
 from app.models.notes import Note, NoteCreate, NoteUpdate, NoteSummary, create_note_summary
 from app.repositories.firestore import get_repository, FirestoreRepository
@@ -348,5 +349,103 @@ async def api_preview_note(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error previewing note: {str(e)}")
+
+
+@router.post("/upload")
+async def upload_file(
+    request: Request,
+    current_user: str = Depends(require_auth),
+    file: UploadFile = File(...),
+    csrf_token: str = Form(...)
+):
+    """Upload a text file and create a note from its content"""
+    print(f"Upload attempt - filename: {file.filename}, content_type: {file.content_type}, csrf_token length: {len(csrf_token) if csrf_token else 0}")
+    
+    # Basic CSRF validation
+    if not csrf_token or len(csrf_token) < 32:
+        raise HTTPException(status_code=400, detail="Invalid CSRF token")
+    
+    # Validate file type
+    allowed_extensions = {'.txt', '.md'}
+    file_ext = os.path.splitext(file.filename)[1].lower() if file.filename else ''
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Only .txt and .md files are allowed")
+    
+    # Check file size (1MB limit)
+    MAX_FILE_SIZE = 1024 * 1024  # 1MB in bytes
+    
+    try:
+        # Read file content
+        content = await file.read()
+        
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="File size exceeds 1MB limit")
+        
+        # Decode content as UTF-8
+        try:
+            file_content = content.decode('utf-8')
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=400, detail="File must be valid UTF-8 text")
+        
+        # Extract filename without extension for title
+        filename_base = os.path.splitext(file.filename)[0] if file.filename else "Uploaded File"
+        
+        # For file uploads, we only encrypt the content, not the filename
+        # The filename comes from the original file and is used as-is for the title
+        decrypted_title = filename_base
+        
+        # Decrypt file content (client encrypts before upload)
+        try:
+            decrypted_content = decrypt_data(file_content)
+        except EncryptionError:
+            # If decryption fails, assume data is not encrypted (fallback)
+            decrypted_content = file_content
+        
+        # Create note
+        repository = get_repository()
+        note_data = NoteCreate(title=decrypted_title, content=decrypted_content)
+        note = await repository.create_note(note_data)
+        
+        # Encrypt note data for response
+        try:
+            # Convert to dict with proper datetime serialization
+            note_dict = note.dict()
+            # Convert datetimes to ISO format strings
+            if note_dict.get('created_at'):
+                note_dict['created_at'] = note_dict['created_at'].isoformat()
+            if note_dict.get('updated_at'):
+                note_dict['updated_at'] = note_dict['updated_at'].isoformat()
+            
+            note_dict['title'] = encrypt_data(note_dict['title'])
+            note_dict['content'] = encrypt_data(note_dict['content'])
+        except EncryptionError as e:
+            raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
+        
+        return JSONResponse({
+            "success": True,
+            "message": "File uploaded successfully",
+            "note": note_dict,
+            "note_id": note.id
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
+
+
+@router.get("/upload", response_class=HTMLResponse)
+async def upload_page(
+    request: Request,
+    current_user: str = Depends(require_auth)
+):
+    """Display file upload page"""
+    csrf_token = generate_csrf_token()
+    
+    return templates.TemplateResponse("upload.html", {
+        "request": request,
+        "title": "Upload File",
+        "csrf_token": csrf_token
+    })
 
 
