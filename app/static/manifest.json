@@ -1,0 +1,29 @@
+{
+  "name": "Markdown Notes",
+  "short_name": "Notes",
+  "description": "Secure personal markdown note-taking application with end-to-end encryption",
+  "start_url": "/notes",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4a90e2",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/static/icons/icon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/static/favicon.ico",
+      "sizes": "16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
