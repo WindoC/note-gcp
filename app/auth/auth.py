@@ -90,25 +90,34 @@ async def require_auth(request: Request) -> str:
     return username
 
 
-class AuthMiddleware:
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class AuthMiddleware(BaseHTTPMiddleware):
     """Authentication middleware for route protection"""
     
-    def __init__(self, protected_paths: list = None):
+    def __init__(self, app, protected_paths: list = None):
+        super().__init__(app)
         self.protected_paths = protected_paths or [
-            "/notes", "/logout"
+            "/notes", "/upload", "/logout"
         ]
     
-    async def __call__(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next):
         path = request.url.path
         
         # Check if path needs authentication
-        needs_auth = any(path.startswith(protected) for protected in self.protected_paths)
+        # Handle both exact matches and path patterns
+        needs_auth = False
+        for protected in self.protected_paths:
+            if path == protected or path.startswith(protected + "/"):
+                needs_auth = True
+                break
         
         if needs_auth:
             username = await get_current_user(request)
             if not username:
                 # Redirect to login for HTML requests, return 401 for API requests
-                if request.headers.get("accept", "").startswith("application/json"):
+                accept_header = request.headers.get("accept", "")
+                if "application/json" in accept_header:
                     raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         detail="Not authenticated"
