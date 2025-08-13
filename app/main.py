@@ -7,7 +7,7 @@ import os
 
 from app.config import settings
 from app.routers import auth, notes
-from app.auth.auth import get_current_user
+from app.auth.auth import get_current_user, AuthMiddleware
 
 app = FastAPI(
     title="Markdown Notes",
@@ -17,6 +17,9 @@ app = FastAPI(
 
 # Security middleware
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
+
+# Authentication middleware
+app.add_middleware(AuthMiddleware)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
