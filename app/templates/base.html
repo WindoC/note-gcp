@@ -13,8 +13,8 @@
                 <h1><a href="/notes" onclick="return confirmNavigationIfEditor(event, '/notes')">📝 Markdown Notes</a></h1>
             </div>
             <div class="nav-links">
-                <!-- <a href="/notes">List Notes</a> -->
                 <a href="/notes/new" class="btn" onclick="return confirmNavigationIfEditor(event, '/notes/new')">Create</a>
+                <a href="/upload" class="btn btn-secondary" onclick="return confirmNavigationIfEditor(event, '/upload')">Upload</a>
                 <form method="post" action="/logout" style="display: inline;" onsubmit="return confirmLogoutIfEditor(event)">
                     <button type="submit" class="btn btn-danger">Logout</button>
                 </form>

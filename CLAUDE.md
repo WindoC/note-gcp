@@ -33,10 +33,11 @@ Based on the PRD, the application will consist of:
 The application implements these core endpoints:
 - Authentication: `POST /login`, `POST /logout`
 - Notes CRUD: `GET /notes`, `POST /notes`, `GET /notes/{id}`, `POST /notes/{id}`, `DELETE /notes/{id}`
+- File Upload: `GET /upload`, `POST /upload` for secure file upload functionality
 - Preview: `GET /notes/{id}/preview` for HTML rendering
 - API Endpoints: `GET /api/notes`, `GET /api/notes/{id}/preview`
 
-**Encryption Implementation**: All note content (titles, content, previews) are encrypted during transmission between client and server using AES-GCM. Data is stored unencrypted in Firestore.
+**Encryption Implementation**: All note content (titles, content, previews) are encrypted during transmission between client and server using AES-GCM. File uploads are encrypted client-side before transmission. Data is stored unencrypted in Firestore.
 
 ## Data Model
 
@@ -71,8 +72,8 @@ app/
 ├── routers/             # API route handlers (auth.py, notes.py)
 ├── templates/           # Jinja2 HTML templates
 └── static/              # CSS and JavaScript assets
-    ├── css/             # Stylesheets
-    └── js/              # JavaScript modules (crypto.js, editor.js)
+    ├── css/             # Stylesheets (style.css)
+    └── js/              # JavaScript modules (crypto.js, editor.js, upload.js)
 ```
 
 ## Common Development Commands
@@ -120,6 +121,28 @@ The application uses AES-GCM encryption to protect note content during transmiss
 - Automatic decryption of received data
 
 **Security Note**: The hard-coded symmetric key is visible in both server and client code. This is insecure by design but acceptable per requirements for simplicity. In production, consider using secure key management.
+
+## File Upload Feature
+
+The application includes secure file upload functionality with client-side encryption:
+
+**Upload Page** (`/upload`):
+- Dedicated page for file uploads accessible via navigation
+- Drag-and-drop interface with visual feedback
+- File validation (`.txt`, `.md` files, 1MB max)
+- Automatic redirect to note editor after successful upload
+
+**Upload Process**:
+1. Client validates file type and size
+2. File content is encrypted using AES-GCM before transmission
+3. Server decrypts content and creates new note
+4. User is redirected to edit the newly created note
+
+**Implementation Files**:
+- `app/templates/upload.html` - Upload page template
+- `app/static/js/upload.js` - File handling and encryption logic
+- `POST /upload` endpoint in `app/routers/notes.py`
+- Upload-specific CSS styles in `app/static/css/style.css`
 
 ## Development Environment
 

@@ -238,6 +238,87 @@ body {
     align-items: center;
 }
 
+/* File Upload Styles */
+.upload-section {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.upload-zone {
+    border: 2px dashed #ced4da;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    background-color: #f8f9fa;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.upload-zone:hover {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+}
+
+.upload-zone.dragover {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+    transform: scale(1.02);
+}
+
+.upload-content p {
+    margin: 0.5rem 0;
+    color: #495057;
+}
+
+.upload-hint {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+    padding: 0;
+}
+
+.btn-link:hover {
+    color: #0056b3;
+}
+
+/* Progress Bar */
+#upload-progress {
+    margin-top: 1rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #007bff;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+#upload-status {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #495057;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .nav-container {
@@ -248,5 +329,58 @@ body {
     .nav-links {
         flex-wrap: wrap;
         justify-content: center;
+    }
+    
+    .upload-zone {
+        padding: 1.5rem 1rem;
+    }
+    
+    .upload-content p {
+        font-size: 0.875rem;
+    }
+}
+
+/* Upload Page Specific Styles */
+.upload-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.upload-info {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.upload-info h3 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.upload-info ol, .upload-info ul {
+    margin-left: 1.5rem;
+    color: #6c757d;
+}
+
+.upload-info li {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.upload-description {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 968px) {
+    .upload-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 }

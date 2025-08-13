@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Upload File - Markdown Notes{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Upload Text File</h2>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <a href="/notes" class="btn btn-secondary">Back to Notes</a>
+    </div>
+</div>
+
+{% if error %}
+<div class="message error">
+    {{ error }}
+</div>
+{% endif %}
+
+{% if message %}
+<div class="message">
+    {{ message }}
+</div>
+{% endif %}
+
+<div class="upload-container">
+    <div class="upload-section">
+        <div class="upload-zone" id="upload-zone">
+            <div class="upload-content">
+                <p>📁 Drag & drop a text file here or <button type="button" id="file-select-btn" class="btn-link">browse files</button></p>
+                <p class="upload-hint">Supported: .txt, .md files (max 1MB)</p>
+                <p class="upload-description">Upload a text or markdown file to create a new note. The filename will be used as the note title, and you can edit it after upload.</p>
+            </div>
+            <input type="file" id="file-input" accept=".txt,.md" style="display: none;">
+        </div>
+        
+        <div id="upload-progress" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p id="upload-status">Uploading...</p>
+        </div>
+    </div>
+
+    <div class="upload-info">
+        <h3>How to Upload</h3>
+        <ol>
+            <li><strong>Select a file:</strong> Click "browse files" or drag and drop a .txt or .md file</li>
+            <li><strong>Automatic processing:</strong> Your file will be encrypted and uploaded securely</li>
+            <li><strong>Edit your note:</strong> After upload, you'll be redirected to edit the new note</li>
+        </ol>
+        
+        <h3>File Requirements</h3>
+        <ul>
+            <li><strong>Format:</strong> Text files (.txt) or Markdown files (.md)</li>
+            <li><strong>Size:</strong> Maximum 1MB per file</li>
+            <li><strong>Encoding:</strong> Must be valid UTF-8 text</li>
+            <li><strong>Security:</strong> Files are encrypted during transmission</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Hidden form for CSRF token -->
+<form id="csrf-form" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+</form>
+
+<script src="/static/js/crypto.js"></script>
+<script src="/static/js/upload.js"></script>
+<script>
+// Initialize upload page functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Set page mode for upload.js
+    window.uploadPageMode = true;
+    
+    // Override success handler for upload page
+    window.uploadSuccessHandler = function(noteId) {
+        // Redirect to edit the newly created note
+        window.location.href = `/notes/${noteId}`;
+    };
+});
+</script>
+{% endblock %}

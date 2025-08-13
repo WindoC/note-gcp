@@ -12,6 +12,7 @@ A secure, single-user web application for managing personal markdown notes, buil
 - 🔐 **Secure Authentication** - Session-based auth with MD5 password hashing
 - 🔒 **End-to-End Encryption** - AES-GCM encryption protects note content during transmission
 - 📝 **Markdown Editor** - Rich editor with syntax highlighting and auto-save
+- 📁 **File Upload** - Secure drag-and-drop upload for .txt and .md files
 - 🔍 **Search Functionality** - Full-text search across note titles and content
 - 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
 - ☁️ **Cloud Storage** - Notes persisted in Google Firestore
@@ -184,6 +185,13 @@ Fully responsive design that works perfectly on all devices.
 - **Preview mode** - View notes in formatted HTML
 - **Timestamps** - Track creation and modification dates
 
+### File Upload
+- **Drag-and-drop interface** - Intuitive file upload experience
+- **Secure encryption** - Files encrypted client-side before upload
+- **File validation** - Support for .txt and .md files up to 1MB
+- **Automatic processing** - Uploaded files become editable notes
+- **Error handling** - Clear feedback for invalid files or errors
+
 ## 🏃‍♂️ Development
 
 ### Project Structure
@@ -209,13 +217,15 @@ note-gcp/
 │   │   ├── login.html     # Login page
 │   │   ├── notes_list.html# Notes listing (with decryption)
 │   │   ├── note_editor.html# Note editor (with encryption)
-│   │   └── note_preview.html# Note preview (with decryption)
+│   │   ├── note_preview.html# Note preview (with decryption)
+│   │   └── upload.html    # File upload page
 │   └── static/            # Static assets
 │       ├── css/
-│       │   └── style.css  # Main stylesheet
+│       │   └── style.css  # Main stylesheet (includes upload styles)
 │       └── js/
 │           ├── crypto.js  # Client-side encryption utilities
-│           └── editor.js  # Editor functionality
+│           ├── editor.js  # Editor functionality
+│           └── upload.js  # File upload handling
 ├── requirements.txt       # Python dependencies
 ├── Dockerfile            # Container configuration
 ├── app.yaml              # GCP App Engine config
@@ -263,6 +273,8 @@ gcloud app logs tail
 | `GET` | `/notes/{id}` | Edit note form |
 | `POST` | `/notes/{id}` | Update note |
 | `DELETE` | `/notes/{id}` | Delete note |
+| `GET` | `/upload` | File upload page |
+| `POST` | `/upload` | Process file upload (encrypted) |
 | `GET` | `/notes/{id}/preview` | Preview note as HTML (encrypted) |
 | `GET` | `/api/notes` | JSON API: Get notes (encrypted) |
 | `GET` | `/api/notes/{id}/preview` | JSON API: Preview markdown (encrypted) |
@@ -283,6 +295,7 @@ python test_basic.py
 ### Test Checklist
 - [ ] Authentication flow (login/logout)
 - [ ] Note CRUD operations with encryption
+- [ ] File upload functionality (.txt and .md files)
 - [ ] Client-side encryption/decryption
 - [ ] Preview functionality with encrypted content
 - [ ] Search capability (server-side on unencrypted data)
