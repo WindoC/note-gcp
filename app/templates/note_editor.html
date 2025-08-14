@@ -14,7 +14,7 @@
         <button type="button" onclick="deleteNote('{{ note.id }}')" class="btn btn-danger">Delete</button>
         {% endif %}
         {% if is_editing and note and note.id %}
-        <a href="/notes/{{ note.id }}/preview" class="btn btn-secondary" target="_blank" onclick="return confirmPreview(event, '/notes/{{ note.id }}/preview')">Preview</a>
+        <a href="/notes/{{ note.id }}/preview" class="btn btn-secondary" onclick="return confirmPreview(event, '/notes/{{ note.id }}/preview')">Preview</a>
         {% endif %}
         <a href="/notes" class="btn btn-secondary" onclick="return confirmNavigation(event, '/notes')">Back</a>
     </div>
