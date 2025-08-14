@@ -2,6 +2,7 @@
 !.gitignore
 !.env.example
 !.dockerignore
+!.gcloudignore
 
 # python
 __pycache__/

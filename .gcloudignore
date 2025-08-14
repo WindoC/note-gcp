@@ -1,0 +1,98 @@
+# This file specifies files that are intentionally untracked by gcloud
+
+# Git
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Environment variables (keep .env.example for reference)
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Firebase/Firestore local files
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+firebase.*
+firestore.*
+
+# Documentation (not needed for deployment)
+*.md
+PRD.md
+PLAN.md
+CLAUDE.md
+
+# Local testing files
+TEST.md
+*.log
+
+# Docker files (not needed for App Engine)
+.dockerignore
+Dockerfile
+
+# App Engine will ignore these automatically, but being explicit
+node_modules/
+npm-debug.log
