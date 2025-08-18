@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a single-user markdown note-taking web application with end-to-end encryption designed for deployment on Google Cloud Platform (GCP) App Engine Flexible Environment. The project includes a comprehensive Product Requirements Document (PRD.md), detailed Implementation Plan (PLAN.md), and End-to-End Encryption PRD (e2e_encryption_prd.md).
+This is a single-user markdown note-taking web application with end-to-end encryption designed for deployment on Google Cloud Platform (GCP) App Engine Standard Environment. The project includes a comprehensive Product Requirements Document (PRD.md), detailed Implementation Plan (PLAN.md), and End-to-End Encryption PRD (e2e_encryption_prd.md).
 
 ## Technology Stack
 
 - **Backend Framework**: FastAPI (Python 3.13)
-- **Deployment Target**: GCP App Engine Flexible Environment
+- **Deployment Target**: GCP App Engine Standard Environment
 - **Database**: Google Firestore (Native Mode)
 - **Authentication**: Single user with username/MD5 password from environment variables
 - **Markdown Rendering**: Python-Markdown library
@@ -26,7 +26,7 @@ Based on the PRD, the application will consist of:
 3. **Data Layer**: Firestore integration for note persistence (notes stored unencrypted)
 4. **UI Layer**: Minimal responsive web interface with Jinja2 templates
 5. **Encryption Layer**: Client-side AES-GCM encryption/decryption with hard-coded symmetric key
-6. **Deployment**: Containerized deployment with Dockerfile and app.yaml
+6. **Deployment**: Native deployment with app.yaml (App Engine Standard)
 
 ## API Structure
 
@@ -86,8 +86,8 @@ Based on PLAN.md implementation phases:
 - `uvicorn app.main:app --reload` - Run with auto-reload
 
 **Development:**
-- `gunicorn --bind :8080 --workers 1 --worker-class uvicorn.workers.UvicornWorker app.main:app` - Production server
-- `gcloud app deploy` - Deploy to GCP App Engine
+- `gunicorn --bind :8080 --workers 1 --worker-class uvicorn.workers.UvicornWorker app.main:app` - Production server (Standard environment)
+- `gcloud app deploy` - Deploy to GCP App Engine Standard
 
 **Environment Setup:**
 - Copy `.env.example` to `.env` and configure environment variables
@@ -149,4 +149,5 @@ The application includes secure file upload functionality with client-side encry
 - Uses single Firestore instance for both dev and production
 - Environment variables configure username, password hash, Firestore project ID
 - No Firestore emulator required per PRD specifications
-- Same codebase deploys to local and GCP with only environment changes
+- Same codebase deploys to local and GCP App Engine Standard with only environment changes
+- Standard environment provides faster deployments and automatic scaling to zero

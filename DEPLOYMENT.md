@@ -51,7 +51,7 @@ gcloud --version
 ### 2.2 Enable Required APIs
 ```bash
 # Set your project (replace with your actual project ID)
-gcloud config set project YOUR-PROJECT-ID
+gcloud config set project md-note-469002
 
 # Enable required APIs
 gcloud services enable appengine.googleapis.com
@@ -65,7 +65,7 @@ gcloud services enable cloudbuild.googleapis.com
 gcloud auth login
 
 # Set your project as default
-gcloud config set project YOUR-PROJECT-ID
+gcloud config set project md-note-469002
 
 # Verify configuration
 gcloud config list
@@ -85,7 +85,7 @@ gcloud config list
 ### 3.2 Alternative: Create Firestore via CLI
 ```bash
 # Create Firestore database in native mode
-gcloud firestore databases create --region=us-central1
+gcloud firestore databases create --region=us-west1
 ```
 
 ### 3.3 Set Up Security Rules
@@ -109,7 +109,7 @@ service cloud.firestore {
 ### 4.1 Initialize App Engine
 ```bash
 # Initialize App Engine (choose region when prompted)
-gcloud app create --region=us-central
+gcloud app create --region=us-west1
 
 # Common regions:
 # us-central (Iowa)
@@ -122,17 +122,14 @@ gcloud app create --region=us-central
 
 #### Update app.yaml with your project details:
 ```yaml
-runtime: python
+runtime: python313
 service: default
-env: flex
-entrypoint: gunicorn -b :$PORT --worker-class uvicorn.workers.UvicornWorker app.main:app
-runtime_config:
-  operating_system: "ubuntu22"
-  runtime_version: "3.13"
+entrypoint: gunicorn --bind :$PORT --workers 1 --worker-class uvicorn.workers.UvicornWorker app.main:app
 
 automatic_scaling:
-  min_num_instances: 1
-  max_num_instances: 1
+  min_instances: 0
+  max_instances: 10
+  target_cpu_utilization: 0.9
 
 env_variables:
   USERNAME: "admin"
@@ -195,11 +192,12 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 
 ## Step 6: Deploy to App Engine
 
-### 6.1 Test Deployment Locally (Optional)
+### 6.1 Test Locally (Optional)
 ```bash
-# Build and test the Docker container locally
-docker build -t markdown-notes .
-docker run -p 8080:8080 --env-file .env markdown-notes
+# App Engine Standard doesn't use custom Docker containers
+# Test directly with your Python environment:
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8080
 ```
 
 ### 6.2 Deploy to App Engine
@@ -288,19 +286,20 @@ gcloud projects add-iam-policy-binding YOUR-PROJECT-ID \
 ## Step 10: Cost Management
 
 ### 10.1 Free Tier Limits
-App Engine Flexible environment costs:
-- **Not included** in free tier
-- Charges based on resource usage
-- Minimum: ~$6/month for always-on instance
+App Engine Standard environment:
+- **Included** in free tier up to quotas
+- 28 instance hours per day (free tier)
+- Can scale to zero for cost savings
+- Pay only for actual usage
 
 ### 10.2 Cost Optimization
 ```bash
-# Note: App Engine Flexible cannot scale to 0 instances
-# Minimum value for min_num_instances is 1
-# In app.yaml:
+# App Engine Standard can scale to 0 instances
+# Optimized configuration for cost savings:
 automatic_scaling:
-  min_num_instances: 1  # Minimum allowed value
-  max_num_instances: 1  # Limit max instances for cost control
+  min_instances: 0      # Scale to zero when no traffic
+  max_instances: 10     # Reasonable limit for most apps
+  target_cpu_utilization: 0.9  # Higher threshold reduces instances
 ```
 
 ### 10.3 Monitor Costs
