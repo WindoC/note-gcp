@@ -76,8 +76,9 @@ Thumbs.db
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
-firebase.*
-firestore.*
+!firebase.*
+!firestore.*
+!.firebaserc
 
 # Documentation (not needed for deployment)
 *.md
@@ -90,8 +91,8 @@ TEST.md
 *.log
 
 # Docker files (not needed for App Engine)
-.dockerignore
-Dockerfile
+!.dockerignore
+!Dockerfile
 
 # App Engine will ignore these automatically, but being explicit
 node_modules/
