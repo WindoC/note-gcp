@@ -10,7 +10,7 @@ A secure, single-user web application for managing personal markdown notes, buil
 ## ✨ Features
 
 - 🔐 **Secure Authentication** - Session-based auth with MD5 password hashing
-- 🔒 **End-to-End Encryption** - AES-GCM encryption protects note content during transmission
+- 🔒 **Dynamic AES Encryption** - User-provided keys with SHA-256 derivation for secure note content
 - 📝 **Markdown Editor** - Rich editor with syntax highlighting and auto-save
 - 📁 **File Upload** - Secure drag-and-drop upload for .txt and .md files
 - 🔍 **Search Functionality** - Full-text search across note titles and content
@@ -27,8 +27,8 @@ A secure, single-user web application for managing personal markdown notes, buil
 │                 │    │                  │    │   Database      │
 │ • Authentication│    │ • Session Mgmt   │    │ • Note Storage  │
 │ • Markdown UI   │    │ • CRUD APIs      │    │ • Search Index  │
-│ • AES-GCM       │    │ • AES-GCM        │    │ • Backup        │
-│   Encryption    │    │   Decryption     │    │                 │
+│ • Dynamic AES    │    │ • SHA-256 Key    │    │ • Backup        │
+│   Encryption    │    │   Derivation     │    │                 │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
          ▲                       ▲
          │    🔒 Encrypted       │
@@ -82,6 +82,7 @@ USERNAME=admin
 PASSWORD_HASH=5f4dcc3b5aa765d61d8327deb882cf99
 FIRESTORE_PROJECT=your-gcp-project-id
 SECRET_KEY=your-super-secret-key-here
+AES_KEY=your-encryption-key-here-any-string-works
 ENVIRONMENT=development
 ```
 
@@ -94,6 +95,8 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 Visit: http://localhost:8080
 
 **Default login:** Username: `admin`, Password: `password`
+
+**AES Key Setup:** When you visit `/notes` pages, you'll be prompted to enter the same key you set in the `AES_KEY` environment variable.
 
 ### 5. Deploy to GCP
 
@@ -154,7 +157,7 @@ Fully responsive design that works perfectly on all devices.
 ## 🔒 Security Features
 
 - ✅ **Authentication** - Session-based with secure JWT tokens
-- ✅ **End-to-End Encryption** - AES-GCM 256-bit encryption for all note data
+- ✅ **Dynamic AES Encryption** - User-provided keys with SHA-256 derivation for 256-bit encryption
 - ✅ **Password Security** - MD5 hashing (as specified in requirements)
 - ✅ **CSRF Protection** - Token-based request validation
 - ✅ **Secure Cookies** - HttpOnly, Secure, SameSite flags
@@ -162,7 +165,7 @@ Fully responsive design that works perfectly on all devices.
 - ✅ **Route Protection** - Authentication required for all operations
 - ✅ **Input Validation** - Server-side validation for all user inputs
 - ✅ **Session Management** - Automatic expiration and cleanup
-- ⚠️ **Encryption Key** - Hard-coded in source (see Security Notes below)
+- 🔑 **Key Management** - User-controlled encryption keys with automatic key derivation
 
 ## 📱 User Interface Features
 
@@ -204,7 +207,7 @@ note-gcp/
 │   ├── auth/              # Authentication logic
 │   │   └── auth.py        # Session management & security
 │   ├── crypto/            # Encryption utilities
-│   │   └── encryption.py  # AES-GCM encryption functions
+│   │   └── encryption.py  # Dynamic AES encryption with SHA-256 key derivation
 │   ├── models/            # Data models
 │   │   └── notes.py       # Note data structures
 │   ├── repositories/      # Data access layer
@@ -223,7 +226,7 @@ note-gcp/
 │       ├── css/
 │       │   └── style.css  # Main stylesheet (includes upload styles)
 │       └── js/
-│           ├── crypto.js  # Client-side encryption utilities
+│           ├── crypto.js  # Client-side encryption with dynamic key management
 │           ├── editor.js  # Editor functionality
 │           └── upload.js  # File upload handling
 ├── requirements.txt       # Python dependencies
@@ -294,13 +297,16 @@ python test_basic.py
 
 ### Test Checklist
 - [ ] Authentication flow (login/logout)
+- [ ] **Dynamic AES key prompt and management**
+- [ ] **Key persistence across sessions (localStorage)**
+- [ ] **Automatic key re-prompt on decryption failures**
 - [ ] Note CRUD operations with encryption
 - [ ] File upload functionality (.txt and .md files)
 - [ ] Client-side encryption/decryption
 - [ ] Preview functionality with encrypted content
 - [ ] Search capability (server-side on unencrypted data)
 - [ ] Responsive design
-- [ ] Security features (CSRF, sessions, encryption)
+- [ ] Security features (CSRF, sessions, dynamic encryption)
 - [ ] Browser compatibility (Web Crypto API)
 - [ ] Error handling
 - [ ] Performance
@@ -341,21 +347,32 @@ Detailed deployment instructions in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 | `PASSWORD_HASH` | MD5 hash of password | `5e8848...` |
 | `FIRESTORE_PROJECT` | GCP project ID | `my-notes-app-123` |
 | `SECRET_KEY` | JWT signing key | Random 32+ chars |
+| `AES_KEY` | User encryption key | Any string (SHA-256 hashed) |
 | `ENVIRONMENT` | Runtime environment | `development`/`production` |
 
-### Encryption Configuration
+### Dynamic AES Encryption Configuration
 
-**⚠️ Security Note**: The application uses a hard-coded AES key for encryption. This is insecure by design but accepted per requirements for simplicity.
+**🔐 User-Controlled Keys**: The application uses a dynamic AES key system where users provide their own encryption keys.
 
-**Current Key**: `0123456789abcdef0123456789abcdef` (32 bytes)
+**How It Works**:
+1. **Server**: Set `AES_KEY` environment variable with your chosen key
+2. **Client**: Users are prompted to enter the same key when accessing notes
+3. **Key Derivation**: SHA-256 hashing converts any string to a proper 32-byte AES key
+4. **Storage**: Only the SHA-256 hash is stored in browser localStorage
 
-**To change the encryption key**:
-1. Update `AES_KEY_BYTES` in `app/crypto/encryption.py`
-2. Update the corresponding key in `app/static/js/crypto.js`
-3. Ensure both keys are identical (32 bytes each)
-4. **Warning**: Changing the key will make existing encrypted data unreadable
+**Setting Up Encryption**:
+1. Set `AES_KEY` environment variable (any string)
+2. Share the key securely with users who need access
+3. Users enter the key when prompted on `/notes` pages
+4. The system handles key derivation and storage automatically
 
-See [`DEPLOYMENT.md`](DEPLOYMENT.md) for detailed key change instructions.
+**Security Features**:
+- Raw keys never stored in browser
+- Automatic re-prompt on decryption failures
+- Consistent SHA-256 key derivation
+- Clean modal interface for key entry
+
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for detailed setup and troubleshooting.
 
 ### Security Configuration
 - **Session expiry**: 24 hours
@@ -408,8 +425,9 @@ Common issues and solutions:
 3. **CSS not loading**: Check static file configuration
 4. **Deployment fails**: Review GCP project settings and quotas
 5. **Encryption errors**: Ensure browser supports Web Crypto API
-6. **Key mismatch**: Verify server and client encryption keys are identical
-7. **Old data unreadable**: Encryption key may have changed
+6. **Key prompt not appearing**: Clear localStorage and reload `/notes` pages
+7. **Decryption failures**: Verify AES_KEY matches between server and user input
+8. **Old data unreadable**: AES_KEY environment variable may have changed
 
 ### Getting Help
 - Check application logs: `gcloud app logs tail`

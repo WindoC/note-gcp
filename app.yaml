@@ -13,3 +13,4 @@ env_variables:
   FIRESTORE_PROJECT: "your-project-id"
   SECRET_KEY: "your-secret-key-here-generate-a-random-string"
   ENVIRONMENT: "production"
+  AES_KEY: "your-aes-key-here-any-string-will-be-hashed-with-sha256"

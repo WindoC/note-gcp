@@ -78,6 +78,9 @@ FIRESTORE_PROJECT=your-test-project-id
 # Security Configuration
 SECRET_KEY=local-development-secret-key-change-in-production
 
+# AES Encryption Key
+AES_KEY=your-test-aes-key-here-any-string-will-work
+
 # Environment
 ENVIRONMENT=development
 ```
@@ -86,6 +89,8 @@ ENVIRONMENT=development
 - `PASSWORD_HASH` above is MD5 hash of "password"
 - For local testing, you can use any test project ID
 - `SECRET_KEY` should be changed for production
+- `AES_KEY` can be any string - it will be hashed to create the 32-byte AES key
+- **CRITICAL**: Users must enter the SAME key you set in `AES_KEY` when prompted
 
 ### 2.3 Create Custom Password (Optional)
 If you want a different password:
@@ -238,12 +243,39 @@ console.log(!!window.crypto && !!window.crypto.subtle);
 
 ✅ **Pass Criteria:** Protected routes require authentication
 
-### 5.5 Encryption Testing (CRITICAL)
+### 5.5 Dynamic AES Encryption Testing (CRITICAL)
 
-#### Test Case 1: Verify Client-Side Encryption
+#### Test Case 1: AES Key Prompt System
 **Steps:**
-1. Login and go to create new note
-2. Open browser developer tools (F12) → Network tab
+1. Login successfully 
+2. Navigate to `/notes` (or any notes page)
+3. If no key is stored, you should see an AES key prompt modal
+
+**Expected:**
+- Modal dialog appears asking for AES key
+- Input field is of type password (shows dots)
+- Modal has OK and Cancel buttons
+- Enter the same key you set in `AES_KEY` environment variable
+
+✅ **Pass Criteria:** Key prompt appears and accepts correct key
+
+#### Test Case 2: Key Storage and Persistence
+**Steps:**
+1. Enter your AES key in the prompt modal
+2. Reload the page
+3. Navigate to different notes pages
+
+**Expected:**
+- Key is remembered (stored in localStorage as SHA-256 hash)
+- No additional prompts appear during same session
+- Can access all notes functionality normally
+
+✅ **Pass Criteria:** Key persists across page reloads and navigation
+
+#### Test Case 3: Verify Client-Side Encryption
+**Steps:**
+1. Complete key setup (Test Cases 1-2)
+2. Create new note with browser dev tools (F12) → Network tab open
 3. Enter title: "Secret Test" and content: "This is **confidential** information"
 4. Watch the network request when clicking "Save Note"
 
@@ -254,7 +286,22 @@ console.log(!!window.crypto && !!window.crypto.subtle);
 
 ✅ **Pass Criteria:** Network traffic shows encrypted data, not plain text
 
-#### Test Case 2: Verify Server-Side Decryption
+#### Test Case 4: Wrong Key Handling
+**Steps:**
+1. Clear localStorage: `localStorage.removeItem('aes_key_hash')`
+2. Refresh any notes page
+3. When prompted, enter an INCORRECT key (different from server's AES_KEY)
+4. Try to view or edit existing notes
+
+**Expected:**
+- Decryption fails for existing encrypted notes
+- User is automatically re-prompted for correct key
+- Modal shows "Decryption failed" message
+- After entering correct key, notes display properly
+
+✅ **Pass Criteria:** Automatic re-prompt on decryption failures
+
+#### Test Case 5: Verify Server-Side Decryption
 **Steps:**
 1. Create a note with content: "# Test Header\nThis is **encrypted** content"
 2. Save the note
@@ -267,7 +314,7 @@ console.log(!!window.crypto && !!window.crypto.subtle);
 
 ✅ **Pass Criteria:** Notes are correctly decrypted and displayed for editing
 
-#### Test Case 3: Verify Notes List Encryption
+#### Test Case 6: Verify Notes List Encryption
 **Steps:**
 1. Create several notes with different titles
 2. Go to notes list (`/notes`)
@@ -281,7 +328,7 @@ console.log(!!window.crypto && !!window.crypto.subtle);
 
 ✅ **Pass Criteria:** List data is transmitted encrypted but displays correctly
 
-#### Test Case 4: Verify Preview Encryption
+#### Test Case 7: Verify Preview Encryption
 **Steps:**
 1. Create a note with markdown content
 2. Click "Preview" button
@@ -294,7 +341,28 @@ console.log(!!window.crypto && !!window.crypto.subtle);
 
 ✅ **Pass Criteria:** Preview content encrypted in transit, properly rendered
 
-#### Test Case 5: Encryption Error Handling
+#### Test Case 8: Key Derivation Consistency Test
+**Steps:**
+1. Use browser console to test key derivation
+2. Open developer console (F12) and run:
+```javascript
+// Test that key derivation works
+const testKey = "test123";
+crypto.subtle.digest('SHA-256', new TextEncoder().encode(testKey))
+  .then(hash => {
+    const hashArray = Array.from(new Uint8Array(hash));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    console.log('SHA-256 of "test123":', hashHex);
+  });
+```
+
+**Expected:**
+- Should output: `ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae`
+- This verifies client-side key derivation is working
+
+✅ **Pass Criteria:** Key derivation produces expected SHA-256 hash
+
+#### Test Case 9: Encryption Error Handling
 **Steps:**
 1. Open browser console (F12)
 2. Temporarily break encryption by typing: `window.NoteCrypto = null`
@@ -530,7 +598,10 @@ gcloud auth application-default login
 ### Issue 6: Encryption not working
 - Check browser console for JavaScript errors
 - Verify Web Crypto API support: `console.log(!!window.crypto.subtle)`
-- Ensure server and client keys match
+- **Verify AES_KEY matches between server environment and user input**
+- Ensure AES_KEY environment variable is set on server
+- Check localStorage for stored key hash: `localStorage.getItem('aes_key_hash')`
+- Clear localStorage and try again: `localStorage.clear()`
 - Check for mixed content issues (HTTP vs HTTPS)
 
 ## Testing Automation (Optional)
@@ -577,9 +648,13 @@ Before deploying to production:
 
 - [ ] All manual tests pass
 - [ ] No console errors in browser
+- [ ] **Dynamic AES key prompt system works**
+- [ ] **Key storage and persistence verified**
+- [ ] **Wrong key handling and re-prompt tested**
 - [ ] **Encryption tests all pass (CRITICAL)**
 - [ ] **Browser compatibility verified (Web Crypto API)**
 - [ ] **Network traffic shows encrypted data**
+- [ ] **Key derivation consistency verified**
 - [ ] Authentication flow works correctly
 - [ ] CRUD operations function properly
 - [ ] Search functionality works
@@ -595,11 +670,12 @@ Your local testing is successful when:
 1. **✅ Application starts** without errors
 2. **✅ Health endpoint** returns healthy status
 3. **✅ Authentication works** (login/logout)
-4. **✅ Encryption works end-to-end** (CRITICAL)
-5. **✅ CRUD operations** work for notes
-6. **✅ Search** finds notes correctly
-7. **✅ Responsive design** works on mobile
-8. **✅ Security features** are functional (CSRF, sessions, encryption)
+4. **✅ Dynamic AES key system works** (prompt, storage, re-prompt)
+5. **✅ Encryption works end-to-end** (CRITICAL)
+6. **✅ CRUD operations** work for notes
+7. **✅ Search** finds notes correctly
+8. **✅ Responsive design** works on mobile
+9. **✅ Security features** are functional (CSRF, sessions, dynamic encryption)
 
 Once all tests pass, you're ready to deploy to GCP App Engine using the instructions in `DEPLOYMENT.md`!
 

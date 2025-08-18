@@ -137,6 +137,7 @@ env_variables:
   FIRESTORE_PROJECT: "YOUR-PROJECT-ID"  # Replace with your actual project ID
   SECRET_KEY: "your-super-secret-key-change-this-in-production"  # Generate a strong random key
   ENVIRONMENT: "production"
+  AES_KEY: "your-aes-key-here-any-string-will-be-hashed-with-sha256"  # User encryption key
 ```
 
 #### Generate a strong secret key:
@@ -168,6 +169,7 @@ USERNAME=admin
 PASSWORD_HASH=5f4dcc3b5aa765d61d8327deb882cf99
 FIRESTORE_PROJECT=YOUR-PROJECT-ID
 SECRET_KEY=your-super-secret-key-change-this-in-production
+AES_KEY=your-aes-key-here-any-string-will-be-hashed-with-sha256
 ENVIRONMENT=development
 ```
 
@@ -381,76 +383,81 @@ gcloud app services list
 | `PASSWORD_HASH` | MD5 hash of password | `5e8848...` (MD5 of "password") |
 | `FIRESTORE_PROJECT` | GCP Project ID | `markdown-notes-123456` |
 | `SECRET_KEY` | JWT secret key | Random 32+ character string |
+| `AES_KEY` | User encryption key | Any string (will be SHA-256 hashed) |
 | `ENVIRONMENT` | Environment mode | `production` or `development` |
 
-## Encryption Key Management
+## AES Encryption Key Management
 
-### ⚠️ Changing the Encryption Key
+### 🔐 Dynamic AES Key System
 
-The application uses a hard-coded AES-256 key for client-server encryption. **Changing this key will make all existing encrypted data unreadable**.
+The application uses a **dynamic AES-256 key system** where users provide their own encryption key. The key is automatically hashed using SHA-256 to create a proper 32-byte AES key.
 
-**Current Key**: `0123456789abcdef0123456789abcdef` (32 bytes)
+### How It Works:
 
-### Steps to Change the Key:
+1. **Server-side**: The `AES_KEY` environment variable contains the raw user key
+2. **Client-side**: Users are prompted to enter the same key when accessing notes
+3. **Key Derivation**: Both sides use SHA-256 to derive identical 32-byte keys
+4. **Storage**: Only the SHA-256 hash is stored in browser localStorage (never the raw key)
 
-1. **Generate a new 32-byte key**:
-   ```python
-   import secrets
-   key = secrets.token_hex(16)  # 16 bytes = 32 hex chars
-   print(f"New key: {key}")
-   ```
+### Setting Up Encryption:
 
-2. **Update server-side key** in `app/crypto/encryption.py`:
-   ```python
-   # Replace this line:
-   AES_KEY = b'0123456789abcdef0123456789abcdef'
-   
-   # With your new key (example):
-   AES_KEY = b'your-new-32-byte-key-here-exactly'
-   ```
-
-3. **Update client-side key** in `app/static/js/crypto.js`:
-   ```javascript
-   // Replace the AES_KEY_BYTES array with your new key bytes
-   const AES_KEY_BYTES = new Uint8Array([
-       // Convert your 32-byte key to byte array
-       0x79, 0x6f, 0x75, 0x72, // 'your'
-       // ... (32 bytes total)
-   ]);
-   ```
-
-4. **Key Conversion Helper**:
-   ```python
-   # Python script to convert hex key to byte arrays
-   key_hex = "your-new-32-byte-key-here-exactly"
-   key_bytes = key_hex.encode('ascii')
-   
-   print(f"Python: AES_KEY = b'{key_hex}'")
-   print(f"JavaScript: const AES_KEY_BYTES = new Uint8Array({list(key_bytes)});")
-   ```
-
-5. **Deploy both changes together**:
+1. **Set the server key** in your environment:
    ```bash
-   # Test locally first
-   python -m app.main
-   
-   # Then deploy
-   gcloud app deploy
+   # In .env file or app.yaml
+   AES_KEY=your-chosen-encryption-passphrase
    ```
 
-### Important Notes:
-- Both server and client keys must be **identical**
-- Keys must be exactly **32 bytes** (256 bits)
-- Changing keys will make existing notes unreadable
-- Test thoroughly in development before production deployment
-- Consider data migration if you have existing encrypted notes
+2. **User Experience**:
+   - Users visit `/notes` pages and are prompted for the AES key
+   - They enter the **same** key you set in the server environment
+   - The key is hashed with SHA-256 and stored in localStorage
+   - If decryption fails, users are automatically re-prompted
+
+### Key Management Best Practices:
+
+1. **Choose a Strong Key**:
+   ```python
+   # Generate a secure random key
+   import secrets
+   import string
+   
+   alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+   key = ''.join(secrets.choice(alphabet) for i in range(32))
+   print(f"Suggested key: {key}")
+   ```
+
+2. **Key Distribution**:
+   - Share the key securely with users (encrypted email, secure messaging)
+   - Consider using a passphrase that's memorable but strong
+   - Document the key securely for admin access
+
+3. **Changing Keys**:
+   - **Warning**: Changing the `AES_KEY` makes existing notes unreadable
+   - Update the environment variable on the server
+   - Users will be prompted for the new key automatically
+   - Consider data migration if you have important existing notes
+
+### Security Features:
+
+- **No Key Storage**: Raw user input is never stored in localStorage
+- **Auto Re-prompt**: Automatic key re-entry if decryption fails
+- **SHA-256 Hashing**: Consistent 32-byte key derivation
+- **Transport Security**: Keys are only used for encryption, never transmitted
+- **Modal Interface**: Clean, secure key entry interface
+
+### Troubleshooting:
+
+- **"Decryption failed"**: User entered wrong key, they'll be re-prompted
+- **"AES_KEY not set"**: Server environment variable missing
+- **Notes appear corrupted**: Key mismatch between server and client
 
 ## Security Checklist
 
 - [ ] Changed default password and generated new hash
 - [ ] Generated strong random secret key
-- [ ] **Reviewed encryption key security (consider changing from default)**
-- [ ] **Verified server and client encryption keys match**
+- [ ] **Set up secure AES_KEY environment variable**
+- [ ] **Tested user key prompt and localStorage functionality**
+- [ ] **Verified encryption key derivation works on both client and server**
 - [ ] Configured Firestore security rules
 - [ ] Enabled HTTPS (automatic with App Engine)
 - [ ] Set up proper IAM permissions
@@ -458,18 +465,20 @@ The application uses a hard-coded AES-256 key for client-server encryption. **Ch
 - [ ] Reviewed application logs
 - [ ] Tested authentication flow
 - [ ] Verified CSRF protection works
-- [ ] **Tested encryption/decryption functionality**
+- [ ] **Tested encryption/decryption functionality with dynamic keys**
+- [ ] **Verified automatic key re-prompt on decryption failures**
 
 ## Next Steps
 
 After deployment:
 1. Test all functionality (login, create/edit/delete notes, search)
-2. **Verify encryption is working** (check network traffic shows encrypted content)
-3. **Test client-side decryption** (ensure notes display correctly)
-4. Create your first note to verify Firestore connectivity
-5. Set up monitoring and alerts
-6. Plan regular backups if needed
-7. Consider setting up a staging environment
+2. **Test the AES key prompt system** (visit `/notes` pages to verify modal appears)
+3. **Verify dynamic encryption is working** (check network traffic shows encrypted content)
+4. **Test automatic key re-prompt** (enter wrong key to verify re-prompt functionality)
+5. Create your first note to verify Firestore connectivity and encryption
+6. Set up monitoring and alerts
+7. Plan regular backups if needed
+8. Consider setting up a staging environment
 
 Your markdown notes application should now be running securely on GCP App Engine with Firestore as the database backend!
 

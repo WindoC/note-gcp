@@ -15,7 +15,7 @@ This is a single-user markdown note-taking web application with end-to-end encry
 - **Markdown Rendering**: Python-Markdown library
 - **HTTP Server**: Uvicorn with Gunicorn for production
 - **Google SDK**: google-cloud-firestore Python client
-- **Encryption**: AES-GCM 256-bit encryption using `cryptography` library (server) and Web Crypto API (client)
+- **Encryption**: Dynamic AES-GCM 256-bit encryption with SHA-256 key derivation using `cryptography` library (server) and Web Crypto API (client)
 
 ## Key Architecture Components
 
@@ -25,7 +25,7 @@ Based on the PRD, the application will consist of:
 2. **API Layer**: RESTful endpoints for notes CRUD operations with encrypted payloads
 3. **Data Layer**: Firestore integration for note persistence (notes stored unencrypted)
 4. **UI Layer**: Minimal responsive web interface with Jinja2 templates
-5. **Encryption Layer**: Client-side AES-GCM encryption/decryption with hard-coded symmetric key
+5. **Encryption Layer**: Dynamic AES-GCM encryption/decryption with user-provided keys and SHA-256 derivation
 6. **Deployment**: Native deployment with app.yaml (App Engine Standard)
 
 ## API Structure
@@ -91,7 +91,7 @@ Based on PLAN.md implementation phases:
 
 **Environment Setup:**
 - Copy `.env.example` to `.env` and configure environment variables
-- Set USERNAME, PASSWORD_HASH, FIRESTORE_PROJECT, SECRET_KEY
+- Set USERNAME, PASSWORD_HASH, FIRESTORE_PROJECT, SECRET_KEY, AES_KEY
 
 ## Implementation Phases
 
@@ -104,23 +104,32 @@ Follow PLAN.md for structured development:
 6. **Phase 6**: Deployment configuration
 7. **Phase 7**: Testing and validation
 
-## Encryption Implementation
+## Dynamic AES Encryption Implementation
 
-The application uses AES-GCM encryption to protect note content during transmission:
+The application uses a dynamic AES-GCM encryption system where users provide their own encryption keys:
 
 **Server Side** (`app/crypto/encryption.py`):
-- Hard-coded 32-byte AES key: `0123456789abcdef0123456789abcdef`
+- Reads raw AES key from `AES_KEY` environment variable
+- Uses SHA-256 to derive consistent 32-byte key from any user input
 - Uses `cryptography` library AESGCM class
 - 12-byte random nonce per encryption
 - Base64 encoding for transport
 
 **Client Side** (`app/static/js/crypto.js`):
-- Same hard-coded AES key as server
+- Prompts users for AES key when accessing `/notes*` pages
+- Uses SHA-256 to derive identical 32-byte key from user input
+- Stores only the SHA-256 hash in localStorage (never raw key)
 - Uses Web Crypto API for AES-GCM operations
-- Automatic encryption of form submissions
-- Automatic decryption of received data
+- Automatic encryption of form submissions and decryption of received data
+- Modal interface for key input with fallback to browser prompt
+- Automatic re-prompt on decryption failures
 
-**Security Note**: The hard-coded symmetric key is visible in both server and client code. This is insecure by design but acceptable per requirements for simplicity. In production, consider using secure key management.
+**Key Management Features**:
+- **User-Controlled**: Users provide their own encryption keys
+- **Secure Storage**: Only SHA-256 hashes stored in localStorage
+- **Auto Re-prompt**: System automatically prompts for correct key on failures
+- **Consistent Derivation**: SHA-256 ensures identical keys on client and server
+- **Modal Interface**: Clean UI for key entry with password masking
 
 ## File Upload Feature
 
