@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     firestore_emulator_host: Optional[str] = os.getenv("FIRESTORE_EMULATOR_HOST", None)
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-here")
     environment: str = os.getenv("ENVIRONMENT", "development")
+    aes_key: str = os.getenv("AES_KEY", "")
     
     @property
     def is_production(self) -> bool:

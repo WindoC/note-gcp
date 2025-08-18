@@ -1,14 +1,28 @@
 import os
 import base64
+import hashlib
 from typing import Union
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.exceptions import InvalidTag
+from ..config import settings
 
 
-# Hard-coded 32-byte AES key (256-bit) as specified in PRD
-# WARNING: This is insecure by design - key is visible in source code
-# This is a known tradeoff for simplicity as per requirements
-AES_KEY = b'0123456789abcdef0123456789abcdef'  # 32 bytes
+def get_aes_key() -> bytes:
+    """
+    Derive AES key from environment variable using SHA-256.
+    
+    Returns:
+        32-byte AES key derived from user input
+        
+    Raises:
+        EncryptionError: If AES_KEY environment variable is not set
+    """
+    raw_key = settings.aes_key
+    if not raw_key:
+        raise EncryptionError("AES_KEY environment variable is not set")
+    
+    # Use SHA-256 to derive 32-byte key from user input
+    return hashlib.sha256(raw_key.encode('utf-8')).digest()
 
 
 class EncryptionError(Exception):
@@ -34,7 +48,8 @@ def encrypt_data(plaintext: Union[str, bytes]) -> str:
             plaintext = plaintext.encode('utf-8')
         
         # Create AESGCM cipher
-        aesgcm = AESGCM(AES_KEY)
+        aes_key = get_aes_key()
+        aesgcm = AESGCM(aes_key)
         
         # Generate random 12-byte nonce for GCM
         nonce = os.urandom(12)
@@ -75,7 +90,8 @@ def decrypt_data(encrypted_data: str) -> str:
         ciphertext = combined_data[12:]
         
         # Create AESGCM cipher
-        aesgcm = AESGCM(AES_KEY)
+        aes_key = get_aes_key()
+        aesgcm = AESGCM(aes_key)
         
         # Decrypt data
         plaintext = aesgcm.decrypt(nonce, ciphertext, None)

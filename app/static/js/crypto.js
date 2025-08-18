@@ -5,20 +5,119 @@
  * This is insecure by design but accepted as a tradeoff for simplicity per requirements.
  */
 
-// Hard-coded 32-byte AES key (same as server) - WARNING: Visible in source!
-const AES_KEY_BYTES = new Uint8Array([
-    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
-    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66
-]);
+// AES key management - key derived from user input and stored in localStorage
+let AES_KEY_BYTES = null;
 
 let cryptoKey = null;
+
+/**
+ * Derive AES key from user input using SHA-256
+ */
+async function deriveKeyFromPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return new Uint8Array(hash);
+}
+
+/**
+ * Get AES key from localStorage or prompt user
+ */
+async function getAESKey() {
+    // Only prompt on /notes* pages
+    if (!window.location.pathname.startsWith('/notes')) {
+        throw new Error('AES key not available on this page');
+    }
+    
+    let keyHash = localStorage.getItem('aes_key_hash');
+    
+    if (!keyHash) {
+        const userKey = await promptForAESKey();
+        if (!userKey) {
+            throw new Error('AES key is required for encryption');
+        }
+        
+        const keyBytes = await deriveKeyFromPassword(userKey);
+        keyHash = Array.from(keyBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        localStorage.setItem('aes_key_hash', keyHash);
+    }
+    
+    // Convert hex string back to Uint8Array
+    const keyBytes = new Uint8Array(keyHash.match(/.{2}/g).map(byte => parseInt(byte, 16)));
+    return keyBytes;
+}
+
+/**
+ * Prompt user for AES key input using modal
+ */
+async function promptForAESKey(isRetry = false) {
+    return new Promise((resolve, reject) => {
+        const modal = document.getElementById('aes-key-modal');
+        const titleElement = document.getElementById('aes-key-modal-title');
+        const messageElement = document.getElementById('aes-key-modal-message');
+        const inputElement = document.getElementById('aes-key-input');
+        const okButton = document.getElementById('aes-key-ok');
+        const cancelButton = document.getElementById('aes-key-cancel');
+        
+        if (!modal) {
+            // Fallback to browser prompt if modal not available
+            const message = isRetry 
+                ? 'Decryption failed. Please enter the correct AES key:'
+                : 'Please enter your AES key to encrypt/decrypt notes:';
+            return resolve(prompt(message));
+        }
+        
+        // Set modal content
+        titleElement.textContent = isRetry ? 'AES Key Required' : 'Enter AES Key';
+        messageElement.textContent = isRetry 
+            ? 'Decryption failed. Please enter the correct AES key:'
+            : 'Please enter your AES key to encrypt/decrypt notes:';
+        
+        inputElement.value = '';
+        inputElement.focus();
+        
+        // Show modal
+        modal.style.display = 'flex';
+        
+        const handleOk = () => {
+            const value = inputElement.value.trim();
+            cleanup();
+            resolve(value || null);
+        };
+        
+        const handleCancel = () => {
+            cleanup();
+            resolve(null);
+        };
+        
+        const handleKeyPress = (e) => {
+            if (e.key === 'Enter') {
+                handleOk();
+            } else if (e.key === 'Escape') {
+                handleCancel();
+            }
+        };
+        
+        const cleanup = () => {
+            modal.style.display = 'none';
+            okButton.removeEventListener('click', handleOk);
+            cancelButton.removeEventListener('click', handleCancel);
+            inputElement.removeEventListener('keydown', handleKeyPress);
+        };
+        
+        okButton.addEventListener('click', handleOk);
+        cancelButton.addEventListener('click', handleCancel);
+        inputElement.addEventListener('keydown', handleKeyPress);
+    });
+}
 
 /**
  * Initialize the crypto key - must be called before encrypt/decrypt operations
  */
 async function initializeCrypto() {
-    if (!cryptoKey) {
+    if (!cryptoKey || !AES_KEY_BYTES) {
         try {
+            AES_KEY_BYTES = await getAESKey();
             cryptoKey = await window.crypto.subtle.importKey(
                 'raw',
                 AES_KEY_BYTES,
@@ -143,8 +242,45 @@ async function decryptData(encryptedData) {
         return bytesToString(new Uint8Array(decrypted));
         
     } catch (error) {
-        // Handle authentication tag failures
+        // Handle authentication tag failures - likely wrong key
         if (error.name === 'OperationError') {
+            // Clear stored key and prompt for new one
+            localStorage.removeItem('aes_key_hash');
+            cryptoKey = null;
+            AES_KEY_BYTES = null;
+            
+            // Retry with new key if on notes pages
+            if (window.location.pathname.startsWith('/notes')) {
+                try {
+                    const userKey = await promptForAESKey(true);
+                    if (userKey) {
+                        AES_KEY_BYTES = await deriveKeyFromPassword(userKey);
+                        const keyHash = Array.from(AES_KEY_BYTES).map(b => b.toString(16).padStart(2, '0')).join('');
+                        localStorage.setItem('aes_key_hash', keyHash);
+                        
+                        cryptoKey = await window.crypto.subtle.importKey(
+                            'raw',
+                            AES_KEY_BYTES,
+                            { name: 'AES-GCM' },
+                            false,
+                            ['encrypt', 'decrypt']
+                        );
+                        
+                        // Retry decryption
+                        const combined = base64ToBytes(encryptedData);
+                        const nonce = combined.slice(0, 12);
+                        const ciphertext = combined.slice(12);
+                        const decrypted = await window.crypto.subtle.decrypt(
+                            { name: 'AES-GCM', iv: nonce },
+                            cryptoKey,
+                            ciphertext
+                        );
+                        return bytesToString(new Uint8Array(decrypted));
+                    }
+                } catch (retryError) {
+                    throw new Error('Decryption failed: invalid authentication tag');
+                }
+            }
             throw new Error('Decryption failed: invalid authentication tag');
         }
         throw new Error('Decryption failed: ' + error.message);
