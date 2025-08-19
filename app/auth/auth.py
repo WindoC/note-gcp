@@ -9,14 +9,14 @@ from jose import jwt, JWTError
 from app.config import settings
 
 
-def hash_md5(password: str) -> str:
-    """Hash password using MD5 as specified in PRD"""
-    return hashlib.md5(password.encode()).hexdigest()
+def hash_sha256(password: str) -> str:
+    """Hash password using SHA256"""
+    return hashlib.sha256(password.encode()).hexdigest()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify password against MD5 hash"""
-    return hash_md5(plain_password) == hashed_password
+    """Verify password against SHA256 hash"""
+    return hash_sha256(plain_password) == hashed_password
 
 
 def create_access_token(username: str, expires_delta: Optional[timedelta] = None) -> str:

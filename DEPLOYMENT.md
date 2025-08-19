@@ -133,7 +133,7 @@ automatic_scaling:
 
 env_variables:
   USERNAME: "admin"
-  PASSWORD_HASH: "5f4dcc3b5aa765d61d8327deb882cf99"  # MD5 of "password"
+  PASSWORD_HASH: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"  # SHA256 of "password"
   FIRESTORE_PROJECT: "YOUR-PROJECT-ID"  # Replace with your actual project ID
   SECRET_KEY: "your-super-secret-key-change-this-in-production"  # Generate a strong random key
   ENVIRONMENT: "production"
@@ -152,7 +152,7 @@ print(secrets.token_urlsafe(32))
 # To create a new password hash
 import hashlib
 password = "your-new-password"
-password_hash = hashlib.md5(password.encode()).hexdigest()
+password_hash = hashlib.sha256(password.encode()).hexdigest()
 print(f"Password hash: {password_hash}")
 ```
 
@@ -380,7 +380,7 @@ gcloud app services list
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `USERNAME` | Admin username | `admin` |
-| `PASSWORD_HASH` | MD5 hash of password | `5e8848...` (MD5 of "password") |
+| `PASSWORD_HASH` | SHA256 hash of password | `5e8848...` (SHA256 of "password") |
 | `FIRESTORE_PROJECT` | GCP Project ID | `markdown-notes-123456` |
 | `SECRET_KEY` | JWT secret key | Random 32+ character string |
 | `AES_KEY` | User encryption key | Any string (will be SHA-256 hashed) |

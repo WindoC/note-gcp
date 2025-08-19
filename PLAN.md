@@ -70,7 +70,7 @@ starlette==0.27.0
 ## Phase 2: Authentication System
 
 ### 2.1 Core Authentication Components
-- MD5 password hashing utility functions
+- SHA256 password hashing utility functions
 - Session token generation and validation
 - Secure cookie configuration (HttpOnly, Secure, SameSite)
 - Authentication middleware for route protection
@@ -190,7 +190,7 @@ automatic_scaling:
 
 env_variables:
   USERNAME: "admin"
-  PASSWORD_HASH: "md5_hash_here"
+  PASSWORD_HASH: "sha256_hash_here"
   FIRESTORE_PROJECT: "your-project-id"
   SECRET_KEY: "your-secret-key"
 ```

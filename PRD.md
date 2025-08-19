@@ -4,7 +4,7 @@
 ## 1. Overview
 A single-user web application for managing personal markdown notes.
 The app will be deployed to Google Cloud Platform (GCP) App Engine Flexible Environment with Python 3.13 runtime, using FastAPI as the backend framework.
-Authentication will be performed using a pre-defined username and MD5-hashed password stored in environment variables.
+Authentication will be performed using a pre-defined username and SHA256-hashed password stored in environment variables.
 Only one user (the owner) will be able to log in and use the system.
 
 The app will use a single Google Firestore (Native Mode) instance for both development and production, ensuring data persistence and consistency across environments.
@@ -33,7 +33,7 @@ The app will use a single Google Firestore (Native Mode) instance for both devel
 - **Deployment Target:** Google Cloud Platform App Engine Flexible Environment
 - **Database:** Google Firestore (Native Mode)
   - A single Firestore instance used for both development and production.
-- **Authentication:** Single user login with username and MD5-hashed password stored in environment variables.
+- **Authentication:** Single user login with username and SHA256-hashed password stored in environment variables.
 - **Markdown Rendering:** Python-Markdown library or equivalent.
 - **HTTP Server:** Uvicorn (with Gunicorn for production).
 - **Google SDK:** `google-cloud-firestore` Python client.
@@ -41,7 +41,7 @@ The app will use a single Google Firestore (Native Mode) instance for both devel
 ### 4.2 Functional Requirements
 
 #### 4.2.1 Authentication
-- Authenticate using username and MD5-hashed password from environment variables.
+- Authenticate using username and SHA256-hashed password from environment variables.
 - Login session managed with secure HTTP cookies (with expiry).
 - No password reset (single-user system).
 
@@ -87,7 +87,7 @@ updated\_at   (timestamp)
   - Logout
 
 ### 4.3 Security Requirements
-- MD5 password stored in env variable, compared against MD5 hash of user input.
+- SHA256 password stored in env variable, compared against SHA256 hash of user input.
 - All routes except `/login` require authentication.
 - CSRF protection for POST/PUT/DELETE requests.
 - HTTPS enforced in production.

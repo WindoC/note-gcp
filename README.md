@@ -9,7 +9,7 @@ A secure, single-user web application for managing personal markdown notes, buil
 
 ## ✨ Features
 
-- 🔐 **Secure Authentication** - Session-based auth with MD5 password hashing
+- 🔐 **Secure Authentication** - Session-based auth with SHA256 password hashing
 - 🔒 **Dynamic AES Encryption** - User-provided keys with SHA-256 derivation for secure note content
 - 📝 **Markdown Editor** - Rich editor with syntax highlighting and auto-save
 - 📁 **File Upload** - Secure drag-and-drop upload for .txt and .md files
@@ -158,7 +158,7 @@ Fully responsive design that works perfectly on all devices.
 
 - ✅ **Authentication** - Session-based with secure JWT tokens
 - ✅ **Dynamic AES Encryption** - User-provided keys with SHA-256 derivation for 256-bit encryption
-- ✅ **Password Security** - MD5 hashing (as specified in requirements)
+- ✅ **Password Security** - SHA256 hashing (as specified in requirements)
 - ✅ **CSRF Protection** - Token-based request validation
 - ✅ **Secure Cookies** - HttpOnly, Secure, SameSite flags
 - ✅ **HTTPS Enforcement** - Automatic SSL in production
@@ -344,7 +344,7 @@ Detailed deployment instructions in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `USERNAME` | Admin username | `admin` |
-| `PASSWORD_HASH` | MD5 hash of password | `5e8848...` |
+| `PASSWORD_HASH` | SHA256 hash of password | `5e8848...` |
 | `FIRESTORE_PROJECT` | GCP project ID | `my-notes-app-123` |
 | `SECRET_KEY` | JWT signing key | Random 32+ chars |
 | `AES_KEY` | User encryption key | Any string (SHA-256 hashed) |
@@ -377,7 +377,7 @@ See [`DEPLOYMENT.md`](DEPLOYMENT.md) for detailed setup and troubleshooting.
 ### Security Configuration
 - **Session expiry**: 24 hours
 - **CSRF tokens**: Required for state-changing operations
-- **Password hashing**: MD5 (as per requirements)
+- **Password hashing**: SHA256 (as per requirements)
 - **Cookie security**: HttpOnly, Secure (in production), SameSite
 - **Encryption**: AES-GCM 256-bit, 12-byte nonce, Base64 encoding
 - **Browser requirements**: Modern browser with Web Crypto API support

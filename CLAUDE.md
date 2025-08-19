@@ -11,7 +11,7 @@ This is a single-user markdown note-taking web application with end-to-end encry
 - **Backend Framework**: FastAPI (Python 3.13)
 - **Deployment Target**: GCP App Engine Standard Environment
 - **Database**: Google Firestore (Native Mode)
-- **Authentication**: Single user with username/MD5 password from environment variables
+- **Authentication**: Single user with username/SHA256 password from environment variables
 - **Markdown Rendering**: Python-Markdown library
 - **HTTP Server**: Uvicorn with Gunicorn for production
 - **Google SDK**: google-cloud-firestore Python client
@@ -52,7 +52,7 @@ Collection: notes
 
 ## Security Requirements
 
-- MD5 password hashing with environment variable storage
+- SHA256 password hashing with environment variable storage
 - CSRF protection for state-changing requests
 - HTTPS enforcement in production
 - Secure cookie configuration (HttpOnly, Secure, SameSite)
@@ -91,13 +91,13 @@ Based on PLAN.md implementation phases:
 
 **Environment Setup:**
 - Copy `.env.example` to `.env` and configure environment variables
-- Set USERNAME, PASSWORD_HASH, FIRESTORE_PROJECT, SECRET_KEY, AES_KEY
+- Set USERNAME, PASSWORD_HASH (SHA256), FIRESTORE_PROJECT, SECRET_KEY, AES_KEY
 
 ## Implementation Phases
 
 Follow PLAN.md for structured development:
 1. **Phase 1**: Project foundation & setup
-2. **Phase 2**: Authentication system with MD5 hashing
+2. **Phase 2**: Authentication system with SHA256 hashing
 3. **Phase 3**: Notes CRUD API with Firestore
 4. **Phase 4**: Frontend templates and JavaScript
 5. **Phase 5**: End-to-end encryption implementation (AES-GCM)

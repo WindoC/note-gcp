@@ -86,7 +86,7 @@ ENVIRONMENT=development
 ```
 
 **Important Notes:**
-- `PASSWORD_HASH` above is MD5 hash of "password"
+- `PASSWORD_HASH` above is SHA256 hash of "password"
 - For local testing, you can use any test project ID
 - `SECRET_KEY` should be changed for production
 - `AES_KEY` can be any string - it will be hashed to create the 32-byte AES key
@@ -100,7 +100,7 @@ If you want a different password:
 import hashlib
 
 password = "your-custom-password"
-password_hash = hashlib.md5(password.encode()).hexdigest()
+password_hash = hashlib.sha256(password.encode()).hexdigest()
 print(f"Password hash for '{password}': {password_hash}")
 ```
 
