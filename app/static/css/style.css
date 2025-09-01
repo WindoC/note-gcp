@@ -1,3 +1,66 @@
+/* Theme Variables */
+:root {
+    --bg: #f8f9fa;
+    --text: #333333;
+    --text-strong: #495057;
+    --text-muted: #6c757d;
+    --surface: #ffffff;
+    --border: #e9ecef;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    --shadow-soft: 0 2px 4px rgba(0,0,0,0.1);
+    --link-hover-bg: #e9ecef;
+    --nav-title: #495057;
+
+    --primary: #007bff;
+    --primary-hover: #0056b3;
+    --secondary: #6c757d;
+    --secondary-hover: #545b62;
+    --danger: #dc3545;
+    --danger-hover: #c82333;
+    --focus: #80bdff;
+
+    --success-bg: #d4edda;
+    --success-text: #155724;
+    --success-border: #c3e6cb;
+
+    --upload-hover-bg: #e3f2fd;
+    --progress-bg: #e9ecef;
+    --progress-fill: #007bff;
+
+    --theme-color: #4a90e2; /* used for meta theme-color */
+}
+
+[data-theme="dark"] {
+    --bg: #0f1216;
+    --text: #e5e7eb;
+    --text-strong: #f3f4f6;
+    --text-muted: #9ca3af;
+    --surface: #1f2937;
+    --border: #374151;
+    --shadow: 0 2px 8px rgba(0,0,0,0.5);
+    --shadow-soft: 0 2px 4px rgba(0,0,0,0.4);
+    --link-hover-bg: #2a3441;
+    --nav-title: #f3f4f6;
+
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --secondary: #6b7280;
+    --secondary-hover: #4b5563;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --focus: #60a5fa;
+
+    --success-bg: #064e3b;
+    --success-text: #a7f3d0;
+    --success-border: #065f46;
+
+    --upload-hover-bg: rgba(59,130,246,0.12);
+    --progress-bg: #374151;
+    --progress-fill: #3b82f6;
+
+    --theme-color: #111827;
+}
+
 /* Basic Reset */
 * {
     margin: 0;
@@ -8,16 +71,16 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background-color: #f8f9fa;
+    color: var(--text);
+    background-color: var(--bg);
 }
 
 /* Navigation */
 .navbar {
-    background-color: #fff;
-    border-bottom: 1px solid #e9ecef;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
     padding: 1rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-soft);
 }
 
 .nav-container {
@@ -30,22 +93,25 @@ body {
 }
 
 .nav-brand h1 {
-    color: #495057;
+    color: var(--nav-title);
     font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .nav-brand h1 a {
-    color: #495057 !important;
+    color: var(--nav-title) !important;
     text-decoration: none !important;
 }
 
 .nav-brand h1 a:hover {
-    color: #495057 !important;
+    color: var(--nav-title) !important;
     text-decoration: none !important;
 }
 
 .nav-brand h1 a:visited {
-    color: #495057 !important;
+    color: var(--nav-title) !important;
 }
 
 .nav-links {
@@ -54,7 +120,7 @@ body {
 }
 
 .nav-links a {
-    color: #6c757d;
+    color: var(--text-muted);
     text-decoration: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
@@ -62,8 +128,8 @@ body {
 }
 
 .nav-links a:hover {
-    background-color: #e9ecef;
-    color: #495057;
+    background-color: var(--link-hover-bg);
+    color: var(--text-strong);
 }
 
 .nav-links a.btn:hover {
@@ -74,7 +140,7 @@ body {
 .nav-link-btn {
     background: none;
     border: none;
-    color: #6c757d;
+    color: var(--text-muted);
     padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
@@ -84,8 +150,8 @@ body {
 }
 
 .nav-link-btn:hover {
-    background-color: #e9ecef;
-    color: #495057;
+    background-color: var(--link-hover-bg);
+    color: var(--text-strong);
 }
 
 /* Main Container */
@@ -98,30 +164,30 @@ body {
 /* Welcome Section */
 .welcome {
     text-align: center;
-    background-color: #fff;
+    background-color: var(--surface);
     padding: 3rem;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
 }
 
 .welcome h2 {
-    color: #495057;
+    color: var(--text-strong);
     margin-bottom: 1rem;
     font-size: 2rem;
 }
 
 .welcome p {
-    color: #6c757d;
+    color: var(--text-muted);
     font-size: 1.1rem;
 }
 
 /* Messages */
 .message {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: var(--success-bg);
+    color: var(--success-text);
     padding: 0.75rem 1rem;
     border-radius: 4px;
-    border: 1px solid #c3e6cb;
+    border: 1px solid var(--success-border);
     margin-bottom: 1rem;
 }
 
@@ -133,10 +199,10 @@ body {
 
 /* Forms */
 .form-container {
-    background-color: #fff;
+    background-color: var(--surface);
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
     max-width: 500px;
     margin: 0 auto;
 }
@@ -149,14 +215,16 @@ body {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: #495057;
+    color: var(--text-strong);
 }
 
 .form-group input,
 .form-group textarea {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    color: var(--text);
     border-radius: 4px;
     font-size: 1rem;
     transition: border-color 0.2s;
@@ -165,8 +233,8 @@ body {
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #80bdff;
-    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    border-color: var(--focus);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus) 25%, transparent);
 }
 
 .form-group textarea {
@@ -181,7 +249,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0.75rem 1.5rem;
-    background-color: #007bff;
+    background-color: var(--primary);
     color: white;
     text-decoration: none;
     border-radius: 4px;
@@ -195,7 +263,7 @@ body {
 }
 
 .btn:hover {
-    background-color: #0056b3;
+    background-color: var(--primary-hover);
     color: white;
 }
 
@@ -208,19 +276,19 @@ body {
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background-color: var(--secondary);
 }
 
 .btn-secondary:hover {
-    background-color: #545b62;
+    background-color: var(--secondary-hover);
 }
 
 .btn-danger {
-    background-color: #dc3545;
+    background-color: var(--danger);
 }
 
 .btn-danger:hover {
-    background-color: #c82333;
+    background-color: var(--danger-hover);
 }
 
 /* Editor Textarea Enhancement */
@@ -240,47 +308,47 @@ body {
 
 /* File Upload Styles */
 .upload-section {
-    background-color: #fff;
+    background-color: var(--surface);
     border-radius: 8px;
     padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-soft);
 }
 
 .upload-zone {
-    border: 2px dashed #ced4da;
+    border: 2px dashed var(--border);
     border-radius: 8px;
     padding: 2rem;
     text-align: center;
-    background-color: #f8f9fa;
+    background-color: var(--bg);
     transition: all 0.2s;
     cursor: pointer;
 }
 
 .upload-zone:hover {
-    border-color: #007bff;
-    background-color: #e3f2fd;
+    border-color: var(--primary);
+    background-color: var(--upload-hover-bg);
 }
 
 .upload-zone.dragover {
-    border-color: #007bff;
-    background-color: #e3f2fd;
+    border-color: var(--primary);
+    background-color: var(--upload-hover-bg);
     transform: scale(1.02);
 }
 
 .upload-content p {
     margin: 0.5rem 0;
-    color: #495057;
+    color: var(--text-strong);
 }
 
 .upload-hint {
     font-size: 0.875rem;
-    color: #6c757d;
+    color: var(--text-muted);
 }
 
 .btn-link {
     background: none;
     border: none;
-    color: #007bff;
+    color: var(--primary);
     text-decoration: underline;
     cursor: pointer;
     font-size: inherit;
@@ -289,7 +357,7 @@ body {
 }
 
 .btn-link:hover {
-    color: #0056b3;
+    color: var(--primary-hover);
 }
 
 /* Progress Bar */
@@ -300,7 +368,7 @@ body {
 .progress-bar {
     width: 100%;
     height: 8px;
-    background-color: #e9ecef;
+    background-color: var(--progress-bg);
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: 0.5rem;
@@ -308,7 +376,7 @@ body {
 
 .progress-fill {
     height: 100%;
-    background-color: #007bff;
+    background-color: var(--progress-fill);
     transition: width 0.3s ease;
     width: 0%;
 }
@@ -316,7 +384,7 @@ body {
 #upload-status {
     margin: 0;
     font-size: 0.875rem;
-    color: #495057;
+    color: var(--text-strong);
 }
 
 /* Responsive Design */
@@ -349,21 +417,21 @@ body {
 }
 
 .upload-info {
-    background-color: #fff;
+    background-color: var(--surface);
     border-radius: 8px;
     padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-soft);
 }
 
 .upload-info h3 {
-    color: #495057;
+    color: var(--text-strong);
     margin-bottom: 1rem;
     font-size: 1.1rem;
 }
 
 .upload-info ol, .upload-info ul {
     margin-left: 1.5rem;
-    color: #6c757d;
+    color: var(--text-muted);
 }
 
 .upload-info li {
@@ -373,7 +441,7 @@ body {
 
 .upload-description {
     font-size: 0.9rem;
-    color: #6c757d;
+    color: var(--text-muted);
     font-style: italic;
     margin-top: 0.5rem;
 }
@@ -400,7 +468,7 @@ body {
 }
 
 .modal-content {
-    background-color: white;
+    background-color: var(--surface);
     border-radius: 8px;
     padding: 2rem;
     min-width: 400px;
@@ -410,20 +478,22 @@ body {
 
 .modal-content h3 {
     margin-bottom: 1rem;
-    color: #495057;
+    color: var(--text-strong);
     font-size: 1.25rem;
 }
 
 .modal-content p {
     margin-bottom: 1.5rem;
-    color: #6c757d;
+    color: var(--text-muted);
     line-height: 1.5;
 }
 
 .modal-content input[type="password"] {
     width: 100%;
     padding: 0.75rem;
-    border: 2px solid #e9ecef;
+    border: 2px solid var(--border);
+    background-color: var(--surface);
+    color: var(--text);
     border-radius: 4px;
     font-size: 1rem;
     margin-bottom: 1.5rem;
@@ -432,8 +502,8 @@ body {
 
 .modal-content input[type="password"]:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .modal-buttons {
@@ -461,4 +531,87 @@ body {
         width: 100%;
         min-width: auto;
     }
+}
+
+/* Theme Toggle UI */
+.theme-wrap { position: relative; display: inline-block; }
+
+.theme-toggle {
+    margin-left: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    font-size: 1.1rem;
+}
+.theme-toggle:hover {
+    background-color: var(--link-hover-bg);
+}
+
+.theme-menu {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    left: 0;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 0.25rem;
+    z-index: 1001;
+}
+
+.nav-brand { position: relative; }
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    color: var(--text) !important;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 1 !important;
+}
+.theme-option .opt-icn { display: inline-block; width: 1.25rem; text-align: center; }
+.theme-option .opt-lbl { text-transform: uppercase; letter-spacing: 0.02em; color: var(--text) !important; font-weight: 500; }
+.theme-option[aria-checked="true"] {
+    font-weight: 600;
+}
+.theme-option[aria-checked="true"] .opt-lbl {
+    color: var(--text-strong) !important;
+}
+.theme-option:hover {
+    background: var(--link-hover-bg);
+}
+/* Ensure no accidental disabled styling */
+.theme-option:disabled {
+    opacity: 1 !important;
+    color: var(--text) !important;
+}
+
+/* Workaround: improve contrast for the 'Dark' option in light mode */
+html[data-theme="light"] .theme-menu .theme-option[data-theme="dark"] {
+    background-color: #2b3444 !important; /* deep slate */
+}
+html[data-theme="light"] .theme-menu .theme-option[data-theme="dark"]:hover {
+    background-color: #233041 !important;
+}
+html[data-theme="light"] .theme-menu .theme-option[data-theme="dark"] .opt-lbl,
+html[data-theme="light"] .theme-menu .theme-option[data-theme="dark"] .opt-icn {
+    color: #ffffff !important;
+}
+html[data-theme="light"] .theme-menu .theme-option[data-theme="dark"][aria-checked="true"] .opt-lbl {
+    color: #ffffff !important;
 }
