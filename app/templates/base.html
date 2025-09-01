@@ -16,14 +16,44 @@
     <!-- Theme Colors -->
     <meta name="theme-color" content="#4a90e2">
     <meta name="msapplication-TileColor" content="#4a90e2">
-    
+    <script>
+      // Apply saved theme ASAP to avoid FOUC
+      (function() {
+        try {
+          var pref = localStorage.getItem('theme-preference') || 'system';
+          var isDark = (pref === 'dark') || (pref === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        } catch (_) {}
+      })();
+    </script>
     <link href="/static/css/style.css" rel="stylesheet">
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
-                <h1><a href="/notes" onclick="return confirmNavigationIfEditor(event, '/notes')">📝 Markdown Notes</a></h1>
+                <h1>
+                    <a href="/notes" onclick="return confirmNavigationIfEditor(event, '/notes')">📝 Markdown Notes</a>
+                    <span class="theme-wrap">
+                        <button id="theme-toggle" class="theme-toggle" title="Theme" aria-haspopup="true" aria-expanded="false" aria-label="Theme">
+                            <span id="theme-toggle-icon" aria-hidden="true">🖥️</span>
+                        </button>
+                        <div id="theme-menu" class="theme-menu" role="menu" aria-labelledby="theme-toggle" hidden>
+                            <button class="theme-option" data-theme="system" role="menuitemradio" aria-checked="true">
+                                <span class="opt-icn" aria-hidden="true">💻</span>
+                                <span class="opt-lbl">System</span>
+                            </button>
+                            <button class="theme-option" data-theme="light" role="menuitemradio" aria-checked="false">
+                                <span class="opt-icn" aria-hidden="true">☀️</span>
+                                <span class="opt-lbl">Light</span>
+                            </button>
+                            <button class="theme-option" data-theme="dark" role="menuitemradio" aria-checked="false">
+                                <span class="opt-icn" aria-hidden="true">🌙</span>
+                                <span class="opt-lbl">Dark</span>
+                            </button>
+                        </div>
+                    </span>
+                </h1>
             </div>
             <div class="nav-links">
                 <a href="/notes/new" class="btn" onclick="return confirmNavigationIfEditor(event, '/notes/new')">Create</a>
@@ -64,6 +94,7 @@
     </div>
     
     <script src="/static/js/editor.js"></script>
+    <script src="/static/js/theme.js"></script>
     <script>
     // Global navigation protection functions
     function confirmNavigationIfEditor(event, targetUrl) {
