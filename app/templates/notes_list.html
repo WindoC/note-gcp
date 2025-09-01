@@ -12,7 +12,7 @@
 <div style="margin-bottom: 2rem;">
     <form method="get" action="/notes" style="display: flex; gap: 1rem;">
         <input type="text" name="search" value="{{ search or '' }}" placeholder="Search notes..." 
-               style="flex: 1; padding: 0.75rem; border: 1px solid #ced4da; border-radius: 4px; font-size: 1rem; line-height: 1.5;">
+               style="flex: 1; padding: 0.75rem; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 4px; font-size: 1rem; line-height: 1.5;">
         <button type="submit" class="btn">Search</button>
         {% if search %}
         <a href="/notes" class="btn btn-secondary">Clear</a>
@@ -142,15 +142,15 @@ async function deleteNote(noteId) {
 }
 
 .note-card {
-    background-color: white;
+    background-color: var(--surface);
     border-radius: 8px;
     padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
     transition: box-shadow 0.2s;
 }
 
 .note-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .note-header {
@@ -162,21 +162,21 @@ async function deleteNote(noteId) {
 }
 
 .note-header h3 a {
-    color: #495057;
+    color: var(--text-strong);
     text-decoration: none;
 }
 
 .note-header h3 a:hover {
-    color: #007bff;
+    color: var(--primary);
 }
 
 .note-date {
     font-size: 0.875rem;
-    color: #6c757d;
+    color: var(--text-muted);
 }
 
 .note-preview {
-    color: #6c757d;
+    color: var(--text-muted);
     margin-bottom: 1rem;
     line-height: 1.5;
     max-height: 4.5em;
@@ -204,19 +204,19 @@ async function deleteNote(noteId) {
 
 .empty-state {
     text-align: center;
-    background-color: white;
+    background-color: var(--surface);
     padding: 3rem;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
 }
 
 .empty-state h3 {
-    color: #6c757d;
+    color: var(--text-muted);
     margin-bottom: 1rem;
 }
 
 .empty-state p {
-    color: #6c757d;
+    color: var(--text-muted);
     margin-bottom: 2rem;
 }
 
