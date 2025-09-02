@@ -51,7 +51,7 @@ gcloud --version
 ### 2.2 Enable Required APIs
 ```bash
 # Set your project (replace with your actual project ID)
-gcloud config set project md-note-469002
+gcloud config set project your-project-id
 
 # Enable required APIs
 gcloud services enable appengine.googleapis.com
@@ -65,7 +65,7 @@ gcloud services enable cloudbuild.googleapis.com
 gcloud auth login
 
 # Set your project as default
-gcloud config set project md-note-469002
+gcloud config set project your-project-id
 
 # Verify configuration
 gcloud config list
