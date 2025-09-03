@@ -24,8 +24,8 @@ async function deriveKeyFromPassword(password) {
  * Get AES key from localStorage or prompt user
  */
 async function getAESKey() {
-    // Only prompt on /notes* pages
-    if (!window.location.pathname.startsWith('/notes')) {
+    // Only prompt on /notes* pages and /upload page
+    if (!(window.location.pathname.startsWith('/notes') || window.location.pathname === '/upload')) {
         throw new Error('AES key not available on this page');
     }
     
