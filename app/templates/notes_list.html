@@ -37,6 +37,7 @@
         
         <div class="note-actions">
             <a href="/notes/{{ note.id }}" class="btn btn-sm">Edit</a>
+            <button onclick="downloadNote('{{ note.id }}')" class="btn btn-sm btn-secondary">Download</button>
             <!-- <a href="/notes/{{ note.id }}/preview" class="btn btn-sm btn-secondary">Preview</a> -->
             <button onclick="deleteNote('{{ note.id }}')" class="btn btn-sm btn-danger">Delete</button>
         </div>
@@ -129,6 +130,38 @@ async function deleteNote(noteId) {
         }
     } catch (error) {
         alert('Error deleting note: ' + error.message);
+    }
+}
+
+function sanitizeFilename(name) {
+    const allowed = "-_.() abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let safe = '';
+    for (const c of name) {
+        safe += allowed.includes(c) ? c : '_';
+    }
+    safe = safe.trim();
+    return safe || 'note';
+}
+
+async function downloadNote(noteId) {
+    try {
+        const res = await fetch(`/api/notes/${noteId}`);
+        if (!res.ok) throw new Error('Failed to fetch note');
+        const data = await res.json();
+        const title = await window.NoteCrypto.decryptData(data.title);
+        const content = await window.NoteCrypto.decryptData(data.content);
+        const filename = sanitizeFilename(title) + '.md';
+        const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        window.NoteCrypto.showCryptoError('Download failed: ' + error.message);
     }
 }
 </script>

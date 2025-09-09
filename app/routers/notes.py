@@ -351,6 +351,38 @@ async def api_preview_note(
         raise HTTPException(status_code=500, detail=f"Error previewing note: {str(e)}")
 
 
+@router.get("/api/notes/{note_id}")
+async def api_get_note(
+    note_id: str,
+    current_user: str = Depends(require_auth)
+):
+    """API endpoint to get a single note with encrypted fields."""
+    repository = get_repository()
+
+    try:
+        note = await repository.get_note(note_id)
+        if not note:
+            raise HTTPException(status_code=404, detail="Note not found")
+
+        # Prepare response with ISO datetimes and encrypted strings
+        note_dict = note.dict()
+        if note_dict.get('created_at'):
+            note_dict['created_at'] = note_dict['created_at'].isoformat()
+        if note_dict.get('updated_at'):
+            note_dict['updated_at'] = note_dict['updated_at'].isoformat()
+
+        try:
+            note_dict['title'] = encrypt_data(note.title)
+            note_dict['content'] = encrypt_data(note.content)
+        except EncryptionError as e:
+            raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
+
+        return note_dict
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading note: {str(e)}")
+
 @router.post("/upload")
 async def upload_file(
     request: Request,
