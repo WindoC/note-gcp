@@ -263,13 +263,30 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function sanitizeFilename(name) {
-    const allowed = "-_.() abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let safe = '';
-    for (const c of name) {
-        safe += allowed.includes(c) ? c : '_';
+    // Allow Unicode characters; remove only illegal filename chars and control chars
+    // 1) Strip control chars
+    let safe = String(name || '').replace(/[\u0000-\u001F\u007F]/g, '');
+    // 2) Replace characters not allowed on Windows/macOS
+    safe = safe.replace(/[<>:"/\\|?*]/g, '-');
+    // 3) Collapse whitespace and trim
+    safe = safe.replace(/\s+/g, ' ').trim();
+    // 4) Avoid reserved Windows device names
+    const reserved = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
+    if (reserved.test(safe)) {
+        safe = '_' + safe;
     }
-    safe = safe.trim();
-    return safe || 'note';
+    // 5) Remove trailing dots/spaces
+    safe = safe.replace(/[ .]+$/g, '');
+    // 6) Enforce max filename length, preserving extension if present
+    if (!safe) safe = 'note';
+    const MAX = 120;
+    if (safe.length > MAX) {
+        const m = safe.match(/(\.[^.]{1,15})$/); // keep short extension if exists
+        const ext = m ? m[1] : '';
+        const base = safe.slice(0, MAX - ext.length);
+        safe = base + ext;
+    }
+    return safe;
 }
 
 async function downloadNote(noteId) {
